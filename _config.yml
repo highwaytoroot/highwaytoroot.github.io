@@ -1,0 +1,35 @@
+# Dependencies
+markdown:         kramdown
+highlighter:      pygments
+
+# Permalinks
+permalink:        pretty
+
+# Setup
+title:            Highway to Root
+tagline:          'Raise your knowledge'
+description:      '...because everybody needs to know how deep the rabbit-hole goes.'
+url:              https://highwaytoroot.github.io
+baseurl:          /
+
+author:
+  name:           'Michele Campobasso, Jacopo Cortellazzi, Andrea Melis'
+  url:            https://highwaytoroot.github.io
+
+gems: [jekyll-paginate]
+paginate: 5
+paginate_path: "page:num"
+
+# Custom vars
+
+github:
+  repo:           https://github.com/highwaytoroot/highwaytoroot.github.io/
+
+# Extra setup for GitHub
+plugins:
+  - jekyll-paginate
+  - jekyll-sitemap
+  - jekyll-gist
+  - jekyll-feed
+  - jemoji
+  - jekyll-include-cache

@@ -1,0 +1,60 @@
+Installation:
+
+	sudo apt-get install ruby-full build-essential
+	________________________________________________
+
+	Depending whether you have ZSH...
+
+	echo '# Install Ruby Gems to ~/gems' >> ~/.zshrc
+	echo 'export GEM_HOME="$HOME/gems"' >> ~/.zshrc
+	echo 'export PATH="$HOME/gems/bin:$PATH"' >> ~/.zshrc
+	source ~/.zshrc
+
+	Or BASH...
+
+	sudo apt-get install ruby-full build-essential
+	echo '# Install Ruby Gems to ~/gems' >> ~/.bashrc
+	echo 'export GEM_HOME="$HOME/gems"' >> ~/.bashrc
+	echo 'export PATH="$HOME/gems/bin:$PATH"' >> ~/.bashrc
+	source ~/.bashrc
+	_______________________________________________
+
+	gem install jekyll bundler jekyll-paginate jekyll-sitemap jekyll-gist jekyll-feed jemoji jekyll-include-cache
+
+
+Running:
+
+	git clone https://github.com/highwaytoroot/highwaytoroot.github.io.git
+	cd highwaytoroot.github.io
+	jekyll serve
+
+	Opening localhost:4000 on a browser, it is possible to see the local version of the repository.
+
+Creating a new report:
+
+	jekyll serve 						<--- it builds the site everytime you save your .md file
+	cd highwaytoroot.github.io
+	mkdir images/NAME_OF_MACHINE 		<--- we'll put here all images related to this machine.
+	mkdir resources/NAME_OF_MACHINE		<--- we'll put here all resources (such as scripts, ...) related to this machine.
+	cd _posts
+	touch YYYY-MM-DD-MACHINENAME.md
+
+	copy inside of it:
+
+
+		---
+		layout: post
+		title: MACHINE NAME - MACHINE IP
+		difficulty: DIFFICULTY
+		---
+
+		_Write-up by NAME [@TWITTER_TAG](TWITTER_PROFILE_URL)_
+
+
+
+	You can start to write your writeup here in markdown. For examples, look Kryptos writeup or Google. 
+	When you've finished your report:
+
+		git add .
+		git commit 
+		git push

