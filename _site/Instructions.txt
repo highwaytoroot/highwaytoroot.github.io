@@ -19,7 +19,8 @@ Installation:
 	source ~/.bashrc
 	_______________________________________________
 
-	gem install jekyll bundler jekyll-paginate jekyll-sitemap jekyll-gist jekyll-feed jemoji jekyll-include-cache
+	gem install jekyll -v 3.8.4
+	gem install bundler jekyll-paginate-v2 jekyll-sitemap jekyll-gist jekyll-feed jemoji jekyll-include-cache
 
 
 Running:
@@ -46,10 +47,10 @@ Creating a new report:
 		layout: post
 		title: MACHINE NAME - MACHINE IP
 		difficulty: DIFFICULTY
+		author: NAME SURNAME
+		author_twitter_name: TWITTER TAG WITHOUT @
+		author_twitter_url: TWITTER URL
 		---
-
-		_Write-up by NAME [@TWITTER_TAG](TWITTER_PROFILE_URL)_
-
 
 
 	You can start to write your writeup here in markdown. For examples, look Kryptos writeup or Google. 

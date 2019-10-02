@@ -16,10 +16,6 @@ author:
   name:           'Michele Campobasso, Jacopo Cortellazzi, Andrea Melis'
   url:            https://highwaytoroot.github.io
 
-gems: [jekyll-paginate]
-paginate: 5
-paginate_path: "page:num"
-
 # Custom vars
 
 github:
@@ -27,9 +23,14 @@ github:
 
 # Extra setup for GitHub
 plugins:
-  - jekyll-paginate
+  - jekyll-paginate-v2
   - jekyll-sitemap
   - jekyll-gist
   - jekyll-feed
   - jemoji
   - jekyll-include-cache
+
+pagination:
+  
+  # Site-wide kill switch, disabled here it doesn't run at all 
+  enabled: true

@@ -4,7 +4,7 @@
  <title>Highway to Root</title>
  <link href="http://localhost:4000/atom.xml" rel="self"/>
  <link href="http://localhost:4000/"/>
- <updated>2019-10-02T21:34:23+02:00</updated>
+ <updated>2019-10-03T00:51:20+02:00</updated>
  <id>http://localhost:4000</id>
  <author>
    <name>Michele Campobasso, Jacopo Cortellazzi, Andrea Melis</name>
@@ -17,9 +17,7 @@
    <link href="http://localhost:4000/2019/09/27/kryptos/"/>
    <updated>2019-09-27T00:00:00+02:00</updated>
    <id>http://localhost:4000/2019/09/27/kryptos</id>
-   <content type="html">&lt;p&gt;&lt;em&gt;Write-up by Michele Campobasso &lt;a href=&quot;https://twitter.com/iswearimnotalu2&quot;&gt;@iswearimnotalu2&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
+   <content type="html">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
 &lt;h2 id=&quot;reconnaissance&quot;&gt;Reconnaissance&lt;/h2&gt;
 
@@ -670,9 +668,7 @@ root
    <link href="http://localhost:4000/2019/09/20/luke/"/>
    <updated>2019-09-20T00:00:00+02:00</updated>
    <id>http://localhost:4000/2019/09/20/luke</id>
-   <content type="html">&lt;p&gt;&lt;em&gt;Write-up by Andrea Melis &lt;a href=&quot;https://twitter.com/wild_boar&quot;&gt;@wild_boar&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
+   <content type="html">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
 &lt;h2 id=&quot;reconnaissance&quot;&gt;Reconnaissance&lt;/h2&gt;
 
