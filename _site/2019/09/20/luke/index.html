@@ -98,7 +98,7 @@
   <h1 class="post-title">Luke - 10.10.10.137</h1>
   <h2 class="post-title">Difficulty score: 6</h2>
   <span class="post-date">20 Sep 2019</span>
-  <p><em>Write-up by Andrea Melis <a href="}">@wild_boar</a>
+  <p><em>Write-up by Andrea Melis <a href="https://twitter.com/wild_boar}">@wild_boar</a>
   <h1 id="user">USER</h1>
 
 <h2 id="reconnaissance">Reconnaissance</h2>
@@ -140,11 +140,11 @@ Derry
 So, first of all we scanned all possible files and folder over the port 80 and 3000
 which look like a website over 80 port:</p>
 
-<p><img src="./images/luke/port_80_luke.png" alt="" /></p>
+<p><img src="/images/luke/port_80_luke.png" alt="" /></p>
 
 <p>And over port 3000 a simple node js api service:</p>
 
-<p><img src="./images/luke/port_3000_luke.png" alt="" /></p>
+<p><img src="/images/luke/port_3000_luke.png" alt="" /></p>
 
 <h3 id="dirbuster">DirBuster</h3>
 
@@ -243,18 +243,18 @@ for the /management panel
 And this is what looks like the management panel; we just have some files
 config.php login.php which we already had:</p>
 
-<p><img src="./images/luke/after_login_luke.png" alt="" /></p>
+<p><img src="/images/luke/after_login_luke.png" alt="" /></p>
 
 <p>But now we alse have config.json file! Which looks really interesting since
 seems to be something related to ajenti page, which is the login page discovered
 on port 8000:
 This is what login page looks like:</p>
 
-<p><img src="./images/luke/ajenti_login_luke.png" alt="" /></p>
+<p><img src="/images/luke/ajenti_login_luke.png" alt="" /></p>
 
 <p>And this is otherwise what the config.json file shows on /management page:</p>
 
-<p><img src="./images/luke/json_luke.png" alt="" /></p>
+<p><img src="/images/luke/json_luke.png" alt="" /></p>
 
 <p>What is immediately visible is the password field;which seems to be the admin
 password for ajenti login.</p>
@@ -263,7 +263,7 @@ password for ajenti login.</p>
 
 <p>So Username root and password KpMasng6S5EtTy9Z:</p>
 
-<p><img src="./images/luke/logged_luke.png" alt="" /></p>
+<p><img src="/images/luke/logged_luke.png" alt="" /></p>
 
 <p><strong>Logged in!!</strong></p>
 
@@ -275,7 +275,7 @@ privileges, in our case guess what… root!!
 So clicking on terminal and running a new one gave us a perfect shell with root
 priv:</p>
 
-<p><img src="./images/luke/rooted_luke.png" alt="" /></p>
+<p><img src="/images/luke/rooted_luke.png" alt="" /></p>
 
 <p>From here we can also of course create a reverse shell to our host machine but
 the flag is already retrieved.</p>

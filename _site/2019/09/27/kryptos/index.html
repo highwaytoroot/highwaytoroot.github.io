@@ -99,7 +99,7 @@
   <h1 class="post-title">Kryptos - 10.10.10.129</h1>
   <h2 class="post-title">Difficulty score: 8.1</h2>
   <span class="post-date">27 Sep 2019</span>
-  <p><em>Write-up by Michele Campobasso <a href="%7D">@iswearimnotalu2</a>
+  <p><em>Write-up by Michele Campobasso <a href="https://twitter.com/iswearimnotalu2%7D">@iswearimnotalu2</a>
   <h1 id="user">USER</h1>
 
 <h2 id="reconnaissance">Reconnaissance</h2>
@@ -154,7 +154,7 @@ HOP RTT      ADDRESS
 
 <p>By quickly visiting the HTTP server, we face a login page. First, we try to gather more information by finding pages available on such webserver through <strong>DirBuster</strong>. We can use a lowercase wordlist such as <code>/usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt</code> because Apache is case insensitive.</p>
 
-<p><img src="./images/kryptos/dirbuster.png" alt=""></p>
+<p><img src="/images/kryptos/dirbuster.png" alt=""></p>
 
 <p>Results are shown below:</p>
 
@@ -223,7 +223,7 @@ $dsn = 'mysql:dbname=cryptos';</pre>
 
 <p>Let’s then login with random credentials and:</p>
 
-<p><img src="./images/kryptos/responder.png" alt=""></p>
+<p><img src="/images/kryptos/responder.png" alt=""></p>
 
 <pre><code>$mysqlna$4141414141414141414141414141414141414141*b25658e4107b15ab804df5d06e47ee40a97f2a53
 </code></pre>
@@ -313,7 +313,7 @@ Query OK, 1 row affected (0.032 sec)
 
 <p>In this way, we have managed to login successfully.</p>
 
-<p><img src="./images/kryptos/loginbypassed.png" alt=""></p>
+<p><img src="/images/kryptos/loginbypassed.png" alt=""></p>
 
 <h2 id="weak-encryption">Weak encryption</h2>
 

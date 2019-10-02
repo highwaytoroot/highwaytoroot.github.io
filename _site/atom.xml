@@ -4,7 +4,7 @@
  <title>Highway to Root</title>
  <link href="http://localhost:4000/atom.xml" rel="self"/>
  <link href="http://localhost:4000/"/>
- <updated>2019-10-03T00:51:20+02:00</updated>
+ <updated>2019-10-03T01:52:34+02:00</updated>
  <id>http://localhost:4000</id>
  <author>
    <name>Michele Campobasso, Jacopo Cortellazzi, Andrea Melis</name>
@@ -71,7 +71,7 @@ HOP RTT      ADDRESS
 
 &lt;p&gt;By quickly visiting the HTTP server, we face a login page. First, we try to gather more information by finding pages available on such webserver through &lt;strong&gt;DirBuster&lt;/strong&gt;. We can use a lowercase wordlist such as &lt;code&gt;/usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt&lt;/code&gt; because Apache is case insensitive.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;./images/kryptos/dirbuster.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/kryptos/dirbuster.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Results are shown below:&lt;/p&gt;
 
@@ -134,7 +134,7 @@ $dsn = 'mysql:dbname=cryptos';&lt;/pre&gt;
 
 &lt;p&gt;Let’s then login with random credentials and:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;./images/kryptos/responder.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/kryptos/responder.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;$mysqlna$4141414141414141414141414141414141414141*b25658e4107b15ab804df5d06e47ee40a97f2a53
 &lt;/code&gt;&lt;/pre&gt;
@@ -224,7 +224,7 @@ Query OK, 1 row affected (0.032 sec)
 
 &lt;p&gt;In this way, we have managed to login successfully.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;./images/kryptos/loginbypassed.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/kryptos/loginbypassed.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;h2 id=&quot;weak-encryption&quot;&gt;Weak encryption&lt;/h2&gt;
 
@@ -709,11 +709,11 @@ Derry
 So, first of all we scanned all possible files and folder over the port 80 and 3000
 which look like a website over 80 port:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;./images/luke/port_80_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/luke/port_80_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;And over port 3000 a simple node js api service:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;./images/luke/port_3000_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/luke/port_3000_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;h3 id=&quot;dirbuster&quot;&gt;DirBuster&lt;/h3&gt;
 
@@ -812,18 +812,18 @@ for the /management panel
 And this is what looks like the management panel; we just have some files
 config.php login.php which we already had:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;./images/luke/after_login_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/luke/after_login_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;But now we alse have config.json file! Which looks really interesting since
 seems to be something related to ajenti page, which is the login page discovered
 on port 8000:
 This is what login page looks like:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;./images/luke/ajenti_login_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/luke/ajenti_login_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;And this is otherwise what the config.json file shows on /management page:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;./images/luke/json_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/luke/json_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;What is immediately visible is the password field;which seems to be the admin
 password for ajenti login.&lt;/p&gt;
@@ -832,7 +832,7 @@ password for ajenti login.&lt;/p&gt;
 
 &lt;p&gt;So Username root and password KpMasng6S5EtTy9Z:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;./images/luke/logged_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/luke/logged_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;Logged in!!&lt;/strong&gt;&lt;/p&gt;
 
@@ -844,7 +844,7 @@ privileges, in our case guess what… root!!
 So clicking on terminal and running a new one gave us a perfect shell with root
 priv:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;./images/luke/rooted_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/luke/rooted_luke.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;From here we can also of course create a reverse shell to our host machine but
 the flag is already retrieved.&lt;/p&gt;
