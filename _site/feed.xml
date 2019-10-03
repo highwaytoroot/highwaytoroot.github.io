@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.4">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-10-03T01:52:34+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Highway to Root</title><subtitle>...because everybody needs to know how deep the rabbit-hole goes.</subtitle><author><name>Michele Campobasso, Jacopo Cortellazzi, Andrea Melis</name></author><entry><title type="html">Kryptos - 10.10.10.129</title><link href="http://localhost:4000/2019/09/27/kryptos/" rel="alternate" type="text/html" title="Kryptos - 10.10.10.129" /><published>2019-09-27T00:00:00+02:00</published><updated>2019-09-27T00:00:00+02:00</updated><id>http://localhost:4000/2019/09/27/kryptos</id><content type="html" xml:base="http://localhost:4000/2019/09/27/kryptos/">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.4">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-10-03T01:03:19+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Highway to Root</title><subtitle>...because everybody needs to know how deep the rabbit-hole goes.</subtitle><author><name>Michele Campobasso, Jacopo Cortellazzi, Andrea Melis</name></author><entry><title type="html">Kryptos - 10.10.10.129</title><link href="http://localhost:4000/2019/09/27/kryptos/" rel="alternate" type="text/html" title="Kryptos - 10.10.10.129" /><published>2019-09-27T00:00:00+01:00</published><updated>2019-09-27T00:00:00+01:00</updated><id>http://localhost:4000/2019/09/27/kryptos</id><content type="html" xml:base="http://localhost:4000/2019/09/27/kryptos/">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
 &lt;h2 id=&quot;reconnaissance&quot;&gt;Reconnaissance&lt;/h2&gt;
 
@@ -639,7 +639,7 @@ root
 
 &lt;p&gt;And we got root on Kryptos!&lt;/p&gt;
 
-&lt;h4 id=&quot;thank-you-for-reading-this-write-up-feedback-is-appreciated-happy-hacking-&quot;&gt;Thank you for reading this write-up. Feedback is appreciated! Happy hacking :)&lt;/h4&gt;</content><author><name>Michele Campobasso</name></author><summary type="html">USER</summary></entry><entry><title type="html">Luke - 10.10.10.137</title><link href="http://localhost:4000/2019/09/20/luke/" rel="alternate" type="text/html" title="Luke - 10.10.10.137" /><published>2019-09-20T00:00:00+02:00</published><updated>2019-09-20T00:00:00+02:00</updated><id>http://localhost:4000/2019/09/20/luke</id><content type="html" xml:base="http://localhost:4000/2019/09/20/luke/">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
+&lt;h4 id=&quot;thank-you-for-reading-this-write-up-feedback-is-appreciated-happy-hacking-&quot;&gt;Thank you for reading this write-up. Feedback is appreciated! Happy hacking :)&lt;/h4&gt;</content><author><name>Michele Campobasso</name></author><summary type="html">USER</summary></entry><entry><title type="html">Luke - 10.10.10.137</title><link href="http://localhost:4000/2019/09/20/luke/" rel="alternate" type="text/html" title="Luke - 10.10.10.137" /><published>2019-09-20T00:00:00+01:00</published><updated>2019-09-20T00:00:00+01:00</updated><id>http://localhost:4000/2019/09/20/luke</id><content type="html" xml:base="http://localhost:4000/2019/09/20/luke/">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
 &lt;h2 id=&quot;reconnaissance&quot;&gt;Reconnaissance&lt;/h2&gt;
 
@@ -820,4 +820,141 @@ priv:&lt;/p&gt;
 &lt;p&gt;From here we can also of course create a reverse shell to our host machine but
 the flag is already retrieved.&lt;/p&gt;
 
-&lt;h4 id=&quot;thank-you-for-reading-this-write-up-feedback-is-appreciated-happy-hacking-&quot;&gt;Thank you for reading this write-up. Feedback is appreciated! Happy hacking :)&lt;/h4&gt;</content><author><name>Andrea Melis</name></author><summary type="html">USER</summary></entry></feed>
+&lt;h4 id=&quot;thank-you-for-reading-this-write-up-feedback-is-appreciated-happy-hacking-&quot;&gt;Thank you for reading this write-up. Feedback is appreciated! Happy hacking :)&lt;/h4&gt;</content><author><name>Andrea Melis</name></author><summary type="html">USER</summary></entry><entry><title type="html">Bastion - 10.10.10.134</title><link href="http://localhost:4000/2019/09/13/bastion/" rel="alternate" type="text/html" title="Bastion - 10.10.10.134" /><published>2019-09-13T00:00:00+01:00</published><updated>2019-09-13T00:00:00+01:00</updated><id>http://localhost:4000/2019/09/13/bastion</id><content type="html" xml:base="http://localhost:4000/2019/09/13/bastion/">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
+
+&lt;p&gt;The first thing we have done has been to perform an &lt;strong&gt;Nmap&lt;/strong&gt; scan against the target.&lt;/p&gt;
+
+&lt;pre&gt;nmap -sS -sV -v -A -p- -oA nmap_tcp_all 10.10.10.134
+
+PORT STATE SERVICE VERSION
+22/tcp open ssh OpenSSH for_Windows_7.9 (protocol 2.0)
+| ssh-hostkey:
+| 2048 3a:56:ae:75:3c:78:0e:c8:56:4d:cb:1c:22:bf:45:8a (RSA)
+| 256 cc:2e:56:ab:19:97:d5:bb:03:fb:82:cd:63:da:68:01 (ECDSA)
+|_ 256 93:5f:5d:aa:ca:9f:53:e7:f2:82:e6:64:a8:a3:a0:18 (ED25519)
+135/tcp open msrpc Microsoft Windows RPC
+139/tcp open netbios-ssn Microsoft Windows netbios-ssn
+445/tcp open microsoft-ds Windows Server 2016 Standard 14393 microsoft-ds
+5985/tcp open http Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+|_http-server-header: Microsoft-HTTPAPI/2.0
+|_http-title: Not Found
+47001/tcp open http Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+|_http-server-header: Microsoft-HTTPAPI/2.0
+|_http-title: Not Found
+49664/tcp open msrpc Microsoft Windows RPC
+49665/tcp open msrpc Microsoft Windows RPC
+49666/tcp open msrpc Microsoft Windows RPC
+49667/tcp open msrpc Microsoft Windows RPC
+49668/tcp open msrpc Microsoft Windows RPC
+49669/tcp open msrpc Microsoft Windows RPC
+49670/tcp open msrpc Microsoft Windows RPC
+
+&lt;/pre&gt;
+
+&lt;p&gt;As it is possible to notice the only interesting ports are SMB ports. For this reason we
+tried to use smbmap with guest account, through the following command :&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;smbmap -H 10.10.10.134 -u guest -p &quot;&quot; -R&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/bastion/initial_smb.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As it is possible to observe the result is quite interesting because we can freely access to
+the Backup folder of the SMB server.
+Trying to download large files has revealed to be slow so we tried so we tried to mount
+the smb share on our box, using the following command:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;mount //10.10.10.134/Backups ./vhd/ -o user=guest&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Unfortunately the command does not work properly, apparently the File System is CIFS and mount
+need a further module, cifs-utils.
+After having installed the module, we could access the SMB share running:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;mount //10.10.10.134/Backups ./vhd/ -o user=guest&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Enumerating the share locally, we can notice a WindowsImageBackup folder, which could potentially
+contain some interesting backup files. Reaching the following folder WindowsImageBackup/L4mpje-
+PC/Backup 2019-02-22 124351 is possible to notice some xml and Windows Disk Image files.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/bastion/tree_smbshare.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The first try is to mount that image file. We need to find a tool which allows us to mount vhd image
+files, because Kali doesn’t support it natively.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;sudo apt-get install libvhdi-utils sleuthkit
+vhdimount 9b9cfbc4-369e-11e9-a17c-806e6f6e6963.vhd
+/root/Documents/HTB/Bastion/smb/vhd_mount/&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;In this way we create a device vhd1 in the selected folder, creating a Boot-Sector for mounitng the
+Windows Image Disk. At this step , simply trying to mount the device returns an error, declaring that
+NTFS signature is missing.
+Analysing the vhdi1 using mmls shows that the NFS partition does not start from the beginning of the
+file, but from 0000000128.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/bastion/mmls.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Using this information is possible to calculate the offset, which is 128*512 (sector length) = 65536.
+Rewriting the commands brings to:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;mount -vt ntfs-3g -o ro,noload,offset=65536 /.vhdi1 ./backup/&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;And we were able to mount the partition in the backup folder. Looking at the backup, it is clear that it
+contains the whole Windows OS, including the configuration files. Indeed, it is possible to access to the
+folder /Windows/System32/config and have access to SYSTEM and SAM files, which are needed in
+order to dump the hashes of the users.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/bastion/hashdump.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Using john specifying the NT format is possible to crack the password of user L4mpje.
+Administrator::500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+Guest::501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+L4mpje:&lt;strong&gt;bureaulampje&lt;/strong&gt;:1000:aad3b435b51404eeaad3b435b51404ee:26112010952d963c8dc4217daec9
+86d9:::
+Using the discovered credential over ssh allows to open a session as user L4mpje, obtaining the first
+flag.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/bastion/user.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;root&quot;&gt;ROOT&lt;/h1&gt;
+
+&lt;p&gt;Now we need to get superuser privileges. As first, we need to enumerate the Windows FS, searching for
+interesting files. Unofrtunately the systeminfo command is denied, so I tried to access the same
+information using powershell, verifying if I obtain a different result. And so it was, we were able to
+identify the current OS version using Get-ComputerInfo.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/bastion/windowsos.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In order to have a complete overview of the files and programs installed on the comuter, I also run the
+Powerless [1] enumeration script. The output is present as Appendix.
+Digging into the listed files, we noticed a non-standard application installed under Program Files (x86)\
+mRemoteNG.
+Googling it we discovered that it is a manager for remote connections for different communications
+protocols [2]. So it could likely contains usefull credentials, hopefully of the Administrator user,
+granting us full control over the box. Further researching for possible ways to recovery the password, I
+found an interesting article [3]. Despite it proposes three different ways in order to recover it, the only
+one actually working for me is the first one, which involves installing mRemoteNG in a Windows
+system.
+The file which contains the credential we are searching for is under Users\L4mpje\AppData\Roaming\
+mRemoteNG\confCons.xml which contains two nodes, so probably, two encrypted credentials.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/bastion/nodes.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;After having started a Windows VM and having installed mRemoteNG on it, I modified the
+confCons.xml file in order to set a blank password for opening the file and loaded it using mRemoteNG
+on my VM. The file is successfully loaded and the program shows two connectins : DC and L4mpje.
+Using the password lookup tool of mRemoteNg, we are able to check the credentials of both user,
+finding a new password.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/bastion/Capture.PNG&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Providing this as password for user Administrator over ssh opens up an ssh session, so are have finally
+owned the box. We can take the last flag and say bye bye to Bastion :P&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/bastion/root.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;references&quot;&gt;References&lt;/h1&gt;
+
+&lt;p&gt;[1] : https://github.com/M4ximuss/Powerless&lt;/p&gt;
+
+&lt;p&gt;[2] : https://mremoteng.org&lt;/p&gt;
+
+&lt;p&gt;[3] : http://hackersvanguard.com/mremoteng-insecure-password-storage/&lt;/p&gt;</content><author><name>Jacopo Cortellazzi</name></author><summary type="html">USER</summary></entry></feed>

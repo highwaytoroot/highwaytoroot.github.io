@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      Bastion - 10.10.10.134 &middot; Highway to Root
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="http://localhost:4000/public/css/poole.css">
+  <link rel="stylesheet" href="http://localhost:4000/public/css/syntax.css">
+  <link rel="stylesheet" href="http://localhost:4000/public/css/hyde.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="http://localhost:4000/public/apple-touch-icon-144-precomposed.png">
+                                 <link rel="shortcut icon" href="http://localhost:4000/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
+</head>
+
+
+  <body>
+
+    <div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1>
+        <a href="http://localhost:4000">
+          Highway to Root
+        </a>
+      </h1>
+      <p class="lead">...because everybody needs to know how deep the rabbit-hole goes.</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-item" href="http://localhost:4000">Home</a>
+
+      
+
+      
+      
+        
+          
+            
+          
+        
+      
+        
+          
+        
+      
+        
+      
+        
+          
+            
+              <a class="sidebar-nav-item" href="/htb/index.html">HackTheBox Machines</a>
+            
+          
+        
+      
+        
+          
+            
+          
+        
+      
+        
+      
+        
+      
+        
+      
+
+      <a class="sidebar-nav-item" href="/about">About</a>
+      <!--<a class="sidebar-nav-item" href="https://github.com/highwaytoroot/highwaytoroot.github.io/">GitHub project</a>-->
+      <!--<span class="sidebar-nav-item">Currently v</span>-->
+    </nav>
+
+    <p>© 2019. Content on this site is licensed under a <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution 4.0 International license</a>.</p>
+<img width="40%" src="http://localhost:4000/images/by-nc-sa.png">
+  </div>
+</div>
+
+
+    <div class="content container">
+      <div class="post">
+  <h1 class="post-title">Bastion - 10.10.10.134</h1>
+  <h2 class="post-title">Difficulty score: 4.5</h2>
+  <span class="post-date">13 Sep 2019</span>
+  <p><em>Write-up by Jacopo Cortellazzi <a href="https://twitter.com/Entrophy6%7D">@Entrophy</a>
+  <h1 id="user">USER</h1>
+
+<p>The first thing we have done has been to perform an <strong>Nmap</strong> scan against the target.</p>
+
+<pre>nmap -sS -sV -v -A -p- -oA nmap_tcp_all 10.10.10.134
+
+PORT STATE SERVICE VERSION
+22/tcp open ssh OpenSSH for_Windows_7.9 (protocol 2.0)
+| ssh-hostkey:
+| 2048 3a:56:ae:75:3c:78:0e:c8:56:4d:cb:1c:22:bf:45:8a (RSA)
+| 256 cc:2e:56:ab:19:97:d5:bb:03:fb:82:cd:63:da:68:01 (ECDSA)
+|_ 256 93:5f:5d:aa:ca:9f:53:e7:f2:82:e6:64:a8:a3:a0:18 (ED25519)
+135/tcp open msrpc Microsoft Windows RPC
+139/tcp open netbios-ssn Microsoft Windows netbios-ssn
+445/tcp open microsoft-ds Windows Server 2016 Standard 14393 microsoft-ds
+5985/tcp open http Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+|_http-server-header: Microsoft-HTTPAPI/2.0
+|_http-title: Not Found
+47001/tcp open http Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+|_http-server-header: Microsoft-HTTPAPI/2.0
+|_http-title: Not Found
+49664/tcp open msrpc Microsoft Windows RPC
+49665/tcp open msrpc Microsoft Windows RPC
+49666/tcp open msrpc Microsoft Windows RPC
+49667/tcp open msrpc Microsoft Windows RPC
+49668/tcp open msrpc Microsoft Windows RPC
+49669/tcp open msrpc Microsoft Windows RPC
+49670/tcp open msrpc Microsoft Windows RPC
+
+</pre>
+
+<p>As it is possible to notice the only interesting ports are SMB ports. For this reason we
+tried to use smbmap with guest account, through the following command :</p>
+
+<p><code>smbmap -H 10.10.10.134 -u guest -p "" -R</code></p>
+
+<p><img src="/images/bastion/initial_smb.png" alt=""></p>
+
+<p>As it is possible to observe the result is quite interesting because we can freely access to
+the Backup folder of the SMB server.
+Trying to download large files has revealed to be slow so we tried so we tried to mount
+the smb share on our box, using the following command:</p>
+
+<p><code>mount //10.10.10.134/Backups ./vhd/ -o user=guest</code></p>
+
+<p>Unfortunately the command does not work properly, apparently the File System is CIFS and mount
+need a further module, cifs-utils.
+After having installed the module, we could access the SMB share running:</p>
+
+<p><code>mount //10.10.10.134/Backups ./vhd/ -o user=guest</code></p>
+
+<p>Enumerating the share locally, we can notice a WindowsImageBackup folder, which could potentially
+contain some interesting backup files. Reaching the following folder WindowsImageBackup/L4mpje-
+PC/Backup 2019-02-22 124351 is possible to notice some xml and Windows Disk Image files.</p>
+
+<p><img src="/images/bastion/tree_smbshare.png" alt=""></p>
+
+<p>The first try is to mount that image file. We need to find a tool which allows us to mount vhd image
+files, because Kali doesn’t support it natively.</p>
+
+<p><code>sudo apt-get install libvhdi-utils sleuthkit
+vhdimount 9b9cfbc4-369e-11e9-a17c-806e6f6e6963.vhd
+/root/Documents/HTB/Bastion/smb/vhd_mount/</code></p>
+
+<p>In this way we create a device vhd1 in the selected folder, creating a Boot-Sector for mounitng the
+Windows Image Disk. At this step , simply trying to mount the device returns an error, declaring that
+NTFS signature is missing.
+Analysing the vhdi1 using mmls shows that the NFS partition does not start from the beginning of the
+file, but from 0000000128.</p>
+
+<p><img src="/images/bastion/mmls.png" alt=""></p>
+
+<p>Using this information is possible to calculate the offset, which is 128*512 (sector length) = 65536.
+Rewriting the commands brings to:</p>
+
+<p><code>mount -vt ntfs-3g -o ro,noload,offset=65536 /.vhdi1 ./backup/</code></p>
+
+<p>And we were able to mount the partition in the backup folder. Looking at the backup, it is clear that it
+contains the whole Windows OS, including the configuration files. Indeed, it is possible to access to the
+folder /Windows/System32/config and have access to SYSTEM and SAM files, which are needed in
+order to dump the hashes of the users.</p>
+
+<p><img src="/images/bastion/hashdump.png" alt=""></p>
+
+<p>Using john specifying the NT format is possible to crack the password of user L4mpje.
+Administrator::500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+Guest::501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+L4mpje:<strong>bureaulampje</strong>:1000:aad3b435b51404eeaad3b435b51404ee:26112010952d963c8dc4217daec9
+86d9:::
+Using the discovered credential over ssh allows to open a session as user L4mpje, obtaining the first
+flag.</p>
+
+<p><img src="/images/bastion/user.png" alt=""></p>
+
+<h1 id="root">ROOT</h1>
+
+<p>Now we need to get superuser privileges. As first, we need to enumerate the Windows FS, searching for
+interesting files. Unofrtunately the systeminfo command is denied, so I tried to access the same
+information using powershell, verifying if I obtain a different result. And so it was, we were able to
+identify the current OS version using Get-ComputerInfo.</p>
+
+<p><img src="/images/bastion/windowsos.png" alt=""></p>
+
+<p>In order to have a complete overview of the files and programs installed on the comuter, I also run the
+Powerless [1] enumeration script. The output is present as Appendix.
+Digging into the listed files, we noticed a non-standard application installed under Program Files (x86)\
+mRemoteNG.
+Googling it we discovered that it is a manager for remote connections for different communications
+protocols [2]. So it could likely contains usefull credentials, hopefully of the Administrator user,
+granting us full control over the box. Further researching for possible ways to recovery the password, I
+found an interesting article [3]. Despite it proposes three different ways in order to recover it, the only
+one actually working for me is the first one, which involves installing mRemoteNG in a Windows
+system.
+The file which contains the credential we are searching for is under Users\L4mpje\AppData\Roaming\
+mRemoteNG\confCons.xml which contains two nodes, so probably, two encrypted credentials.</p>
+
+<p><img src="/images/bastion/nodes.png" alt=""></p>
+
+<p>After having started a Windows VM and having installed mRemoteNG on it, I modified the
+confCons.xml file in order to set a blank password for opening the file and loaded it using mRemoteNG
+on my VM. The file is successfully loaded and the program shows two connectins : DC and L4mpje.
+Using the password lookup tool of mRemoteNg, we are able to check the credentials of both user,
+finding a new password.</p>
+
+<p><img src="/images/bastion/Capture.PNG" alt=""></p>
+
+<p>Providing this as password for user Administrator over ssh opens up an ssh session, so are have finally
+owned the box. We can take the last flag and say bye bye to Bastion :P</p>
+
+<p><img src="/images/bastion/root.png" alt=""></p>
+
+<h1 id="references">References</h1>
+
+<p>[1] : https://github.com/M4ximuss/Powerless</p>
+
+<p>[2] : https://mremoteng.org</p>
+
+<p>[3] : http://hackersvanguard.com/mremoteng-insecure-password-storage/</p>
+
+</em></p>
+</div>
+
+<div class="related">
+  <h2>Related Posts</h2>
+  <ul class="related-posts">
+    
+      <li>
+        <h3>
+          <a href="/2019/09/27/kryptos/">
+            Kryptos - 10.10.10.129
+            <small>27 Sep 2019</small>
+          </a>
+        </h3>
+      </li>
+    
+      <li>
+        <h3>
+          <a href="/2019/09/20/luke/">
+            Luke - 10.10.10.137
+            <small>20 Sep 2019</small>
+          </a>
+        </h3>
+      </li>
+    
+  </ul>
+</div>
+
+    </div>
+
+  </body>
+</html>
