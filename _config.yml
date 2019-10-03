@@ -22,7 +22,7 @@ github:
   repo:           https://github.com/highwaytoroot/highwaytoroot.github.io/
 
 gems: [jekyll-paginate]
-paginate: 5
+paginate: 500
 paginate_path: "/htb/page:num"
 
 # Extra setup for GitHub
