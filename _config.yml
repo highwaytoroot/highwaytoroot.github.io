@@ -21,9 +21,11 @@ author:
 github:
   repo:           https://github.com/highwaytoroot/highwaytoroot.github.io/
 
+paginate_path: "/htb/page:num"
+
 # Extra setup for GitHub
 plugins:
-  - jekyll-paginate-v2
+  - jekyll-paginate
   - jekyll-sitemap
   - jekyll-gist
   - jekyll-feed

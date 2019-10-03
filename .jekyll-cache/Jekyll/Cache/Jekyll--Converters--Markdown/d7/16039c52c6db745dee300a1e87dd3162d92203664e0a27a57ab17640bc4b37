@@ -1,106 +1,4 @@
-<!DOCTYPE html>
-<html lang="en-us">
-
-  <head>
-  <link href="http://gmpg.org/xfn/11" rel="profile">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-
-  <!-- Enable responsiveness on mobile devices-->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-
-  <title>
-    
-      Kryptos - 10.10.10.129 &middot; Highway to Root
-    
-  </title>
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="http://localhost:4000/public/css/poole.css">
-  <link rel="stylesheet" href="http://localhost:4000/public/css/syntax.css">
-  <link rel="stylesheet" href="http://localhost:4000/public/css/hyde.css">
-  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
-
-  <!-- Icons -->
-  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="http://localhost:4000/public/apple-touch-icon-144-precomposed.png">
-                                 <link rel="shortcut icon" href="http://localhost:4000/public/favicon.ico">
-
-  <!-- RSS -->
-  <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
-</head>
-
-
-  <body>
-
-    <div class="sidebar">
-  <div class="container sidebar-sticky">
-    <div class="sidebar-about">
-      <h1>
-        <a href="http://localhost:4000">
-          Highway to Root
-        </a>
-      </h1>
-      <p class="lead">...because everybody needs to know how deep the rabbit-hole goes.</p>
-    </div>
-
-    <nav class="sidebar-nav">
-      <a class="sidebar-nav-item" href="http://localhost:4000">Home</a>
-
-      
-
-      
-      
-        
-          
-            
-          
-        
-      
-        
-          
-        
-      
-        
-      
-        
-          
-            
-              <a class="sidebar-nav-item" href="/htb/">HackTheBox Boxes</a>
-            
-          
-        
-      
-        
-          
-            
-          
-        
-      
-        
-      
-        
-      
-        
-      
-
-      <a class="sidebar-nav-item" href="/about">About</a>
-      <!--<a class="sidebar-nav-item" href="https://github.com/highwaytoroot/highwaytoroot.github.io/">GitHub project</a>-->
-      <!--<span class="sidebar-nav-item">Currently v</span>-->
-    </nav>
-
-    <p>© 2019. Content on this site is licensed under a <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution 4.0 International license</a>.</p>
-<img width="40%" src="http://localhost:4000/images/by-nc-sa.png">
-  </div>
-</div>
-
-
-    <div class="content container">
-      <div class="post">
-  <h1 class="post-title">Kryptos - 10.10.10.129</h1>
-  <h2 class="post-title">Difficulty score: 8.1</h2>
-  <span class="post-date">27 Sep 2019</span>
-  <p><em>Write-up by Michele Campobasso <a href="https://twitter.com/iswearimnotalu2">@iswearimnotalu2</a>
-  <h1 id="user">USER</h1>
+I"�u<h1 id="user">USER</h1>
 
 <h2 id="reconnaissance">Reconnaissance</h2>
 
@@ -154,7 +52,7 @@ HOP RTT      ADDRESS
 
 <p>By quickly visiting the HTTP server, we face a login page. First, we try to gather more information by finding pages available on such webserver through <strong>DirBuster</strong>. We can use a lowercase wordlist such as <code>/usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt</code> because Apache is case insensitive.</p>
 
-<p><img src="/images/kryptos/dirbuster.png" alt=""></p>
+<p><img src="/images/kryptos/dirbuster.png" alt="" /></p>
 
 <p>Results are shown below:</p>
 
@@ -177,10 +75,8 @@ HOP RTT      ADDRESS
 <p>By inspecting the source code of <code>index.php</code>, it is possible to see that there are two hidden fields:</p>
 
 <ol>
-  <li>
-<strong>db</strong>, which contains the value <em>cryptor</em>;</li>
-  <li>
-<strong>token</strong>, which contains an anti-XSRF token that changes to each refresh.</li>
+  <li><strong>db</strong>, which contains the value <em>cryptor</em>;</li>
+  <li><strong>token</strong>, which contains an anti-XSRF token that changes to each refresh.</li>
 </ol>
 
 <p>By modifying the value of db and putting something arbitrary, we get an error message:</p>
@@ -211,19 +107,15 @@ $dsn = 'mysql:dbname=cryptos';</pre>
 <p>The provided parameters represent:</p>
 
 <ul>
-  <li>
-<strong>-p examples/config_test.py</strong> — Configuration file (Python).</li>
-  <li>
-<strong>-I tun0</strong> — Interface to bind to.</li>
-  <li>
-<strong>-4</strong> — IP version 4 to be used.</li>
-  <li>
-<strong>-6</strong> — IP version 6 to be used.</li>
+  <li><strong>-p examples/config_test.py</strong> — Configuration file (Python).</li>
+  <li><strong>-I tun0</strong> — Interface to bind to.</li>
+  <li><strong>-4</strong> — IP version 4 to be used.</li>
+  <li><strong>-6</strong> — IP version 6 to be used.</li>
 </ul>
 
 <p>Let’s then login with random credentials and:</p>
 
-<p><img src="/images/kryptos/responder.png" alt=""></p>
+<p><img src="/images/kryptos/responder.png" alt="" /></p>
 
 <pre><code>$mysqlna$4141414141414141414141414141414141414141*b25658e4107b15ab804df5d06e47ee40a97f2a53
 </code></pre>
@@ -313,7 +205,7 @@ Query OK, 1 row affected (0.032 sec)
 
 <p>In this way, we have managed to login successfully.</p>
 
-<p><img src="/images/kryptos/loginbypassed.png" alt=""></p>
+<p><img src="/images/kryptos/loginbypassed.png" alt="" /></p>
 
 <h2 id="weak-encryption">Weak encryption</h2>
 
@@ -512,8 +404,7 @@ $ whoami
 www-data
 </code></pre>
 
-<h2 id="privilege-escalation-to-user-rijndael">Privilege escalation to user <em>rijndael</em>
-</h2>
+<h2 id="privilege-escalation-to-user-rijndael">Privilege escalation to user <em>rijndael</em></h2>
 
 <p>From a first look in the file system, it is possible to see that the path <code>/home/rijndael/</code> is world-readable. Inside of it, there are a few interesting things:</p>
 
@@ -680,12 +571,9 @@ rijndael@kryptos:~$
 <p>In the source code, it is possible to see that there are three APIs exposed:</p>
 
 <ul>
-  <li>
-<code>GET /</code> which don’t produce valuable output;</li>
-  <li>
-<code>GET /debug</code> which produces a signature from a sample expression;</li>
-  <li>
-<code>POST /eval</code> which allows us to pass an expression and its signature, to evaluate the signature first and if matches, executes it.</li>
+  <li><code>GET /</code> which don’t produce valuable output;</li>
+  <li><code>GET /debug</code> which produces a signature from a sample expression;</li>
+  <li><code>POST /eval</code> which allows us to pass an expression and its signature, to evaluate the signature first and if matches, executes it.</li>
 </ul>
 
 <p>This will be our attack vector. First, we have to understand how to generate valid signatures for a given expression and second we have to find a way to execute code. By inspecting the code, it is written that the function <code>secure_rng(seed)</code> should be secure. By Googling, we found out that the <code>random.getrandbits(int)</code> function <a href="https://docs.python.org/2/library/random.html">is not good for security purposes</a>. Therefore, we try to break the <code>secure_rng(seed)</code> function:</p>
@@ -753,36 +641,4 @@ root
 
 <h4 id="thank-you-for-reading-this-write-up-feedback-is-appreciated-happy-hacking-">Thank you for reading this write-up. Feedback is appreciated! Happy hacking :)</h4>
 
-
-</em></p>
-</div>
-
-<div class="related">
-  <h2>Related Posts</h2>
-  <ul class="related-posts">
-    
-      <li>
-        <h3>
-          <a href="/2019/09/20/luke/">
-            Luke - 10.10.10.137
-            <small>20 Sep 2019</small>
-          </a>
-        </h3>
-      </li>
-    
-      <li>
-        <h3>
-          <a href="/2019/09/13/bastion/">
-            Bastion - 10.10.10.134
-            <small>13 Sep 2019</small>
-          </a>
-        </h3>
-      </li>
-    
-  </ul>
-</div>
-
-    </div>
-
-  </body>
-</html>
+:ET

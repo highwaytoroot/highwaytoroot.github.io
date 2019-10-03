@@ -4,7 +4,7 @@
  <title>Highway to Root</title>
  <link href="http://localhost:4000/atom.xml" rel="self"/>
  <link href="http://localhost:4000/"/>
- <updated>2019-10-03T01:03:19+01:00</updated>
+ <updated>2019-10-03T02:35:22+02:00</updated>
  <id>http://localhost:4000</id>
  <author>
    <name>Michele Campobasso, Jacopo Cortellazzi, Andrea Melis</name>
@@ -15,7 +15,7 @@
  <entry>
    <title>Kryptos - 10.10.10.129</title>
    <link href="http://localhost:4000/2019/09/27/kryptos/"/>
-   <updated>2019-09-27T00:00:00+01:00</updated>
+   <updated>2019-09-27T00:00:00+02:00</updated>
    <id>http://localhost:4000/2019/09/27/kryptos</id>
    <content type="html">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
@@ -666,7 +666,7 @@ root
  <entry>
    <title>Luke - 10.10.10.137</title>
    <link href="http://localhost:4000/2019/09/20/luke/"/>
-   <updated>2019-09-20T00:00:00+01:00</updated>
+   <updated>2019-09-20T00:00:00+02:00</updated>
    <id>http://localhost:4000/2019/09/20/luke</id>
    <content type="html">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
@@ -856,7 +856,7 @@ the flag is already retrieved.&lt;/p&gt;
  <entry>
    <title>Bastion - 10.10.10.134</title>
    <link href="http://localhost:4000/2019/09/13/bastion/"/>
-   <updated>2019-09-13T00:00:00+01:00</updated>
+   <updated>2019-09-13T00:00:00+02:00</updated>
    <id>http://localhost:4000/2019/09/13/bastion</id>
    <content type="html">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
@@ -963,7 +963,7 @@ identify the current OS version using Get-ComputerInfo.&lt;/p&gt;
 
 &lt;p&gt;In order to have a complete overview of the files and programs installed on the comuter, I also run the
 Powerless [1] enumeration script. The output is present as Appendix.
-Digging into the listed files, we noticed a non-standard application installed under Program Files (x86)\
+Digging into the listed files, we noticed a non-standard application installed under Program Files (x86)&lt;br /&gt;
 mRemoteNG.
 Googling it we discovered that it is a manager for remote connections for different communications
 protocols [2]. So it could likely contains usefull credentials, hopefully of the Administrator user,
@@ -971,7 +971,7 @@ granting us full control over the box. Further researching for possible ways to 
 found an interesting article [3]. Despite it proposes three different ways in order to recover it, the only
 one actually working for me is the first one, which involves installing mRemoteNG in a Windows
 system.
-The file which contains the credential we are searching for is under Users\L4mpje\AppData\Roaming\
+The file which contains the credential we are searching for is under Users\L4mpje\AppData\Roaming&lt;br /&gt;
 mRemoteNG\confCons.xml which contains two nodes, so probably, two encrypted credentials.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/images/bastion/nodes.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;

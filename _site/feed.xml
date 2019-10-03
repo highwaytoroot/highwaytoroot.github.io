@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.4">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-10-03T01:03:19+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Highway to Root</title><subtitle>...because everybody needs to know how deep the rabbit-hole goes.</subtitle><author><name>Michele Campobasso, Jacopo Cortellazzi, Andrea Melis</name></author><entry><title type="html">Kryptos - 10.10.10.129</title><link href="http://localhost:4000/2019/09/27/kryptos/" rel="alternate" type="text/html" title="Kryptos - 10.10.10.129" /><published>2019-09-27T00:00:00+01:00</published><updated>2019-09-27T00:00:00+01:00</updated><id>http://localhost:4000/2019/09/27/kryptos</id><content type="html" xml:base="http://localhost:4000/2019/09/27/kryptos/">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-10-03T02:35:22+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Highway to Root</title><subtitle>...because everybody needs to know how deep the rabbit-hole goes.</subtitle><author><name>Michele Campobasso, Jacopo Cortellazzi, Andrea Melis</name></author><entry><title type="html">Kryptos - 10.10.10.129</title><link href="http://localhost:4000/2019/09/27/kryptos/" rel="alternate" type="text/html" title="Kryptos - 10.10.10.129" /><published>2019-09-27T00:00:00+02:00</published><updated>2019-09-27T00:00:00+02:00</updated><id>http://localhost:4000/2019/09/27/kryptos</id><content type="html" xml:base="http://localhost:4000/2019/09/27/kryptos/">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
 &lt;h2 id=&quot;reconnaissance&quot;&gt;Reconnaissance&lt;/h2&gt;
 
@@ -639,7 +639,7 @@ root
 
 &lt;p&gt;And we got root on Kryptos!&lt;/p&gt;
 
-&lt;h4 id=&quot;thank-you-for-reading-this-write-up-feedback-is-appreciated-happy-hacking-&quot;&gt;Thank you for reading this write-up. Feedback is appreciated! Happy hacking :)&lt;/h4&gt;</content><author><name>Michele Campobasso</name></author><summary type="html">USER</summary></entry><entry><title type="html">Luke - 10.10.10.137</title><link href="http://localhost:4000/2019/09/20/luke/" rel="alternate" type="text/html" title="Luke - 10.10.10.137" /><published>2019-09-20T00:00:00+01:00</published><updated>2019-09-20T00:00:00+01:00</updated><id>http://localhost:4000/2019/09/20/luke</id><content type="html" xml:base="http://localhost:4000/2019/09/20/luke/">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
+&lt;h4 id=&quot;thank-you-for-reading-this-write-up-feedback-is-appreciated-happy-hacking-&quot;&gt;Thank you for reading this write-up. Feedback is appreciated! Happy hacking :)&lt;/h4&gt;</content><author><name>Michele Campobasso</name></author><summary type="html">USER</summary></entry><entry><title type="html">Luke - 10.10.10.137</title><link href="http://localhost:4000/2019/09/20/luke/" rel="alternate" type="text/html" title="Luke - 10.10.10.137" /><published>2019-09-20T00:00:00+02:00</published><updated>2019-09-20T00:00:00+02:00</updated><id>http://localhost:4000/2019/09/20/luke</id><content type="html" xml:base="http://localhost:4000/2019/09/20/luke/">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
 &lt;h2 id=&quot;reconnaissance&quot;&gt;Reconnaissance&lt;/h2&gt;
 
@@ -820,7 +820,7 @@ priv:&lt;/p&gt;
 &lt;p&gt;From here we can also of course create a reverse shell to our host machine but
 the flag is already retrieved.&lt;/p&gt;
 
-&lt;h4 id=&quot;thank-you-for-reading-this-write-up-feedback-is-appreciated-happy-hacking-&quot;&gt;Thank you for reading this write-up. Feedback is appreciated! Happy hacking :)&lt;/h4&gt;</content><author><name>Andrea Melis</name></author><summary type="html">USER</summary></entry><entry><title type="html">Bastion - 10.10.10.134</title><link href="http://localhost:4000/2019/09/13/bastion/" rel="alternate" type="text/html" title="Bastion - 10.10.10.134" /><published>2019-09-13T00:00:00+01:00</published><updated>2019-09-13T00:00:00+01:00</updated><id>http://localhost:4000/2019/09/13/bastion</id><content type="html" xml:base="http://localhost:4000/2019/09/13/bastion/">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
+&lt;h4 id=&quot;thank-you-for-reading-this-write-up-feedback-is-appreciated-happy-hacking-&quot;&gt;Thank you for reading this write-up. Feedback is appreciated! Happy hacking :)&lt;/h4&gt;</content><author><name>Andrea Melis</name></author><summary type="html">USER</summary></entry><entry><title type="html">Bastion - 10.10.10.134</title><link href="http://localhost:4000/2019/09/13/bastion/" rel="alternate" type="text/html" title="Bastion - 10.10.10.134" /><published>2019-09-13T00:00:00+02:00</published><updated>2019-09-13T00:00:00+02:00</updated><id>http://localhost:4000/2019/09/13/bastion</id><content type="html" xml:base="http://localhost:4000/2019/09/13/bastion/">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
 &lt;p&gt;The first thing we have done has been to perform an &lt;strong&gt;Nmap&lt;/strong&gt; scan against the target.&lt;/p&gt;
 
@@ -925,7 +925,7 @@ identify the current OS version using Get-ComputerInfo.&lt;/p&gt;
 
 &lt;p&gt;In order to have a complete overview of the files and programs installed on the comuter, I also run the
 Powerless [1] enumeration script. The output is present as Appendix.
-Digging into the listed files, we noticed a non-standard application installed under Program Files (x86)\
+Digging into the listed files, we noticed a non-standard application installed under Program Files (x86)&lt;br /&gt;
 mRemoteNG.
 Googling it we discovered that it is a manager for remote connections for different communications
 protocols [2]. So it could likely contains usefull credentials, hopefully of the Administrator user,
@@ -933,7 +933,7 @@ granting us full control over the box. Further researching for possible ways to 
 found an interesting article [3]. Despite it proposes three different ways in order to recover it, the only
 one actually working for me is the first one, which involves installing mRemoteNG in a Windows
 system.
-The file which contains the credential we are searching for is under Users\L4mpje\AppData\Roaming\
+The file which contains the credential we are searching for is under Users\L4mpje\AppData\Roaming&lt;br /&gt;
 mRemoteNG\confCons.xml which contains two nodes, so probably, two encrypted credentials.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/images/bastion/nodes.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
