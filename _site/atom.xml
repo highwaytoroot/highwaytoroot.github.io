@@ -4,7 +4,7 @@
  <title>Highway to Root</title>
  <link href="http://localhost:4000/atom.xml" rel="self"/>
  <link href="http://localhost:4000/"/>
- <updated>2019-10-10T00:20:52+01:00</updated>
+ <updated>2019-10-10T08:08:59+02:00</updated>
  <id>http://localhost:4000</id>
  <author>
    <name>Michele Campobasso, Jacopo Cortellazzi, Andrea Melis</name>
@@ -15,7 +15,7 @@
  <entry>
    <title>Ghoul - 10.10.10.101</title>
    <link href="http://localhost:4000/2019/10/04/ghoul/"/>
-   <updated>2019-10-04T00:00:00+01:00</updated>
+   <updated>2019-10-04T00:00:00+02:00</updated>
    <id>http://localhost:4000/2019/10/04/ghoul</id>
    <content type="html">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
@@ -390,7 +390,7 @@ After a bit of googling I got my answer:&lt;/p&gt;
  <entry>
    <title>Kryptos - 10.10.10.129</title>
    <link href="http://localhost:4000/2019/09/27/kryptos/"/>
-   <updated>2019-09-27T00:00:00+01:00</updated>
+   <updated>2019-09-27T00:00:00+02:00</updated>
    <id>http://localhost:4000/2019/09/27/kryptos</id>
    <content type="html">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
@@ -1048,7 +1048,7 @@ root
  <entry>
    <title>Luke - 10.10.10.137</title>
    <link href="http://localhost:4000/2019/09/20/luke/"/>
-   <updated>2019-09-20T00:00:00+01:00</updated>
+   <updated>2019-09-20T00:00:00+02:00</updated>
    <id>http://localhost:4000/2019/09/20/luke</id>
    <content type="html">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
@@ -1238,7 +1238,7 @@ the flag is already retrieved.&lt;/p&gt;
  <entry>
    <title>Bastion - 10.10.10.134</title>
    <link href="http://localhost:4000/2019/09/13/bastion/"/>
-   <updated>2019-09-13T00:00:00+01:00</updated>
+   <updated>2019-09-13T00:00:00+02:00</updated>
    <id>http://localhost:4000/2019/09/13/bastion</id>
    <content type="html">&lt;h1 id=&quot;user&quot;&gt;USER&lt;/h1&gt;
 
