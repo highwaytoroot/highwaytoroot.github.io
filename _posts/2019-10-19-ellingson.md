@@ -3,8 +3,8 @@ layout: post
 title: Ellingson - 10.10.10.139
 difficulty: 5.8
 author: Michele Campobasso
-author_twitter_name: iswearimnotalu2
-author_twitter_url: https://twitter.com/iswearimnotalu2
+author_twitter_name: alpha_centauri3
+author_twitter_url: https://twitter.com/alpha_centauri3
 ---
 
 # USER
